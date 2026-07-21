@@ -1,5 +1,13 @@
 # Changelog
 
+## Phase 7 — dc-handoff skill
+
+- dc-handoff skill: /dc:handoff-to-tc command for Test Commander handoff.
+- Packages development artifacts into a bundle Test Commander can learn from.
+- Assembles plans, increment records, and reviews at `.dev-commander/handoff/NNNN-<slug>/` with summary.md, features.md, and acceptance-criteria.md.
+- Uses universal software-engineering vocabulary; no internal jargon.
+- Reports bundle path and recommends next /tc: commands for the consuming project.
+
 ## Phase 6 — dc-debug skill
 
 - dc-debug skill: /dc:debug command for root-cause-first debugging.
