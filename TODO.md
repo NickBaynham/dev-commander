@@ -1,6 +1,5 @@
 # To Do
 
-- Phase 1: dc-core skill (init, status, journal, next) with Python helpers.
 - Phase 2: dc-scaffold skill and scaffold templates.
 - Phase 3: dc-plan skill.
 - Phase 4: dc-implement skill.
