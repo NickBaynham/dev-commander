@@ -1,5 +1,12 @@
 # Changelog
 
+## Phase 3 — dc-plan skill
+
+- dc-plan skill: /dc:plan and /dc:review-plan commands for implementation planning.
+- Plan format with Goal, Architecture, Tech Stack, Global Constraints, and increment rubric.
+- Produces plans under .dev-commander/plans/NNNN-<slug>.md with independent, test-first increments.
+- dc-review-plan reviews existing plans against the increment rubric.
+
 ## Phase 2 — dc-scaffold skill
 
 - dc-scaffold skill: project scaffolding with six templates (Makefile, pyproject.toml, docker-compose.yml, README, CHANGELOG, TODO).

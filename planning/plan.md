@@ -1009,6 +1009,8 @@ Generates standard project scaffolding from templates bundled at
    skip it. List skipped files at the end.
 4. Only include docker-compose.yml when the project needs local services;
    ask if unclear. Databases and system tools always run on docker locally.
+   When skipping docker-compose.yml, also remove the `docker compose up -d`
+   line from the generated Makefile's run target so `make run` still works.
 5. After writing, run `pdm install` and `make lint test` to prove the
    scaffold is healthy, then journal the scaffold decision with the
    dc-core journal helper.
