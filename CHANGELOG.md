@@ -1,5 +1,12 @@
 # Changelog
 
+## Phase 4 — dc-implement skill
+
+- dc-implement skill: /dc:implement command for test-first increment execution.
+- Executes exactly one plan increment per invocation with failing test written first.
+- Records increment under .dev-commander/increments/NNNN-<slug>-<increment>.md with test evidence.
+- Checks off plan checkbox, updates CHANGELOG.md and TODO.md, commits, and stops for review.
+
 ## Phase 3 — dc-plan skill
 
 - dc-plan skill: /dc:plan and /dc:review-plan commands for implementation planning.
