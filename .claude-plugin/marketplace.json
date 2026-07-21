@@ -1,0 +1,16 @@
+{
+  "name": "dev-commander-marketplace",
+  "owner": {
+    "name": "Nick Baynham",
+    "email": "nickbaynham@gmail.com"
+  },
+  "description": "Local marketplace hosting the Dev Commander plugin.",
+  "plugins": [
+    {
+      "name": "dev-commander",
+      "source": "./plugins/dev-commander",
+      "version": "0.0.0",
+      "description": "An AI-assisted software development agent. Skills span workspace orchestration, project scaffolding, incremental implementation planning, test-first implementation, rubric-driven code review, root-cause debugging, and handoff to Test Commander."
+    }
+  ]
+}
