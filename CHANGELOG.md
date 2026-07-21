@@ -1,5 +1,12 @@
 # Changelog
 
+## Phase 6 — dc-debug skill
+
+- dc-debug skill: /dc:debug command for root-cause-first debugging.
+- Disciplined workflow: reproduce, isolate with failing test, diagnose with evidence, fix, prevent, record.
+- Root cause is proven before any fix is written. Guesswork and workarounds are not accepted.
+- Produces investigation report under .dev-commander/debug/NNNN-<slug>.md with full workflow documentation.
+
 ## Phase 5 — dc-review skill
 
 - dc-review skill: /dc:review command for rubric-driven code review.

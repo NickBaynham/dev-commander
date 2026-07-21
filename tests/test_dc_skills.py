@@ -11,6 +11,7 @@ EXPECTED = {
     "dc-plan": ["/dc:plan", "/dc:review-plan", "plans/"],
     "dc-implement": ["/dc:implement", "increments/", "failing test"],
     "dc-review": ["/dc:review", "reviews/", "rubric"],
+    "dc-debug": ["/dc:debug", "debug/", "root cause"],
 }
 
 
