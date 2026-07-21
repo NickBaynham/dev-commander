@@ -1188,8 +1188,8 @@ then stop. This keeps work incremental and reviewable.
    - Run the project's full verify command (make verify, or make lint
      test when no verify target exists).
 4. Record the increment at
-   `.dev-commander/increments/NNNN-<slug>-<increment>.md`: what was
-   built, test evidence (command and output summary), files touched,
+   `.dev-commander/increments/NNNN-<slug>-<increment>.md`, where NNNN
+   is the next zero-padded sequence number: what was built, test evidence (command and output summary), files touched,
    and any deviations from the plan with reasons.
 5. Update the project's CHANGELOG.md, and TODO.md when scope changed.
 6. Check off the increment's `- [ ]` box in the plan file.
@@ -1270,8 +1270,9 @@ Rubric:
    - Clarity: clear names over comments; docstrings concise; no emojis.
    - Tests: behavior-focused, failing-first evidence recorded, no
      assertions weakened to force a pass.
-3. Write the report to `.dev-commander/reviews/NNNN-<slug>.md` with a
-   verdict: approve, approve with repairs, or request changes.
+3. Write the report to `.dev-commander/reviews/NNNN-<slug>.md`, where
+   NNNN is the next zero-padded sequence number, with a verdict:
+   approve, approve with repairs, or request changes.
 4. Do not modify code during review. Repairs are applied by
    /dc:implement or by the user.
 ```
@@ -1341,10 +1342,12 @@ fixes.
    isolating test (now passing) and the full suite.
 5. Prevent: update documentation so the problem is not reintroduced —
    add preventive verbiage to the project's agent file or docs, and
-   note the lesson in the workspace journal.
-6. Record the investigation at `.dev-commander/debug/NNNN-<slug>.md`:
-   symptom, reproduction, isolating test, root cause with evidence,
-   fix, prevention.
+   note the lesson in the workspace journal with the dc-core journal
+   helper.
+6. Record the investigation at `.dev-commander/debug/NNNN-<slug>.md`,
+   where NNNN is the next zero-padded sequence number: symptom,
+   reproduction, isolating test, root cause with evidence, fix,
+   prevention.
 
 Never fix before step 3 is complete. If pressed for a quick fix,
 explain that an unproven fix is a guess and continue the workflow.

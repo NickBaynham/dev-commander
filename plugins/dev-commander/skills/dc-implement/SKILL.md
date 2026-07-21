@@ -21,8 +21,9 @@ then stop. This keeps work incremental and reviewable.
    - Run the project's full verify command (make verify, or make lint
      test when no verify target exists).
 4. Record the increment at
-   `.dev-commander/increments/NNNN-<slug>-<increment>.md`: what was
-   built, test evidence (command and output summary), files touched,
+   `.dev-commander/increments/NNNN-<slug>-<increment>.md`, where NNNN
+   is the next zero-padded sequence number: what was built,
+   test evidence (command and output summary), files touched,
    and any deviations from the plan with reasons.
 5. Update the project's CHANGELOG.md, and TODO.md when scope changed.
 6. Check off the increment's `- [ ]` box in the plan file.

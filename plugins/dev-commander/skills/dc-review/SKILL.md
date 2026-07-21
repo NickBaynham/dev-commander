@@ -27,7 +27,8 @@ Rubric:
    - Clarity: clear names over comments; docstrings concise; no emojis.
    - Tests: behavior-focused, failing-first evidence recorded, no
      assertions weakened to force a pass.
-3. Write the report to `.dev-commander/reviews/NNNN-<slug>.md` with a
-   verdict: approve, approve with repairs, or request changes.
+3. Write the report to `.dev-commander/reviews/NNNN-<slug>.md`, where
+   NNNN is the next zero-padded sequence number, with a verdict:
+   approve, approve with repairs, or request changes.
 4. Do not modify code during review. Repairs are applied by
    /dc:implement or by the user.

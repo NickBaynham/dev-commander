@@ -23,10 +23,12 @@ fixes.
    isolating test (now passing) and the full suite.
 5. Prevent: update documentation so the problem is not reintroduced —
    add preventive verbiage to the project's agent file or docs, and
-   note the lesson in the workspace journal.
-6. Record the investigation at `.dev-commander/debug/NNNN-<slug>.md`:
-   symptom, reproduction, isolating test, root cause with evidence,
-   fix, prevention.
+   note the lesson in the workspace journal with the dc-core journal
+   helper.
+6. Record the investigation at `.dev-commander/debug/NNNN-<slug>.md`,
+   where NNNN is the next zero-padded sequence number: symptom,
+   reproduction, isolating test, root cause with evidence, fix,
+   prevention.
 
 Never fix before step 3 is complete. If pressed for a quick fix,
 explain that an unproven fix is a guess and continue the workflow.
