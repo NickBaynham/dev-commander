@@ -16,11 +16,15 @@ def verify_skills(root: Path) -> list[str]:
             problems.append(f"{skill_md}: missing frontmatter")
             continue
         front = text.split("---", 2)[1]
-        for field in ("name:", "description:"):
-            if field not in front:
-                problems.append(f"{skill_md}: frontmatter missing {field[:-1]}")
+        fields = {
+            m.group(1): m.group(2).strip()
+            for m in re.finditer(r"^(name|description):\s*(.+)$", front, re.MULTILINE)
+        }
+        for field in ("name", "description"):
+            if field not in fields:
+                problems.append(f"{skill_md}: frontmatter missing {field}")
         name = skill_md.parent.name
-        if f"name: {name}" not in front:
+        if fields.get("name", name) != name:
             problems.append(f"{skill_md}: frontmatter name != directory name {name}")
         for target in LINK.findall(text):
             if target.startswith(("http://", "https://", "#")):

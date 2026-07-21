@@ -37,3 +37,17 @@ def test_verify_skills_runs_clean():
         capture_output=True, text=True,
     )
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_verify_skills_detects_problems(tmp_path):
+    import sys
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from verify_skills import verify_skills
+
+    bad = tmp_path / "dc-broken"
+    bad.mkdir()
+    (bad / "SKILL.md").write_text("---\nname: wrong-name\n---\n\n[gone](missing.md)\n")
+    problems = verify_skills(tmp_path)
+    assert any("missing description" in p for p in problems)
+    assert any("name != directory name" in p for p in problems)
+    assert any("broken link missing.md" in p for p in problems)
