@@ -75,7 +75,8 @@ dev-commander/
     │       ├── docker-compose.yml.tmpl
     │       ├── README.md.tmpl
     │       ├── CHANGELOG.md.tmpl
-    │       └── TODO.md.tmpl
+    │       ├── TODO.md.tmpl
+    │       └── tests/test_smoke.py.tmpl
     └── skills/
         ├── dc-core/SKILL.md
         ├── dc-scaffold/SKILL.md
