@@ -10,6 +10,7 @@ SKILLS = ROOT / "plugins" / "dev-commander" / "skills"
 EXPECTED = {
     "dc-plan": ["/dc:plan", "/dc:review-plan", "plans/"],
     "dc-implement": ["/dc:implement", "increments/", "failing test"],
+    "dc-review": ["/dc:review", "reviews/", "rubric"],
 }
 
 

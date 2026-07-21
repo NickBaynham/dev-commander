@@ -1,5 +1,13 @@
 # Changelog
 
+## Phase 5 — dc-review skill
+
+- dc-review skill: /dc:review command for rubric-driven code review.
+- Reviews code against fixed rubric: Correctness, Simplicity, DRY, Size, Clarity, Tests.
+- Reviews most recent increment by default; user may name a diff, branch, or file set.
+- Produces review report under .dev-commander/reviews/NNNN-<slug>.md with verdict.
+- Findings include file:line, severity (blocker, major, minor), evidence, and repair guidance.
+
 ## Phase 4 — dc-implement skill
 
 - dc-implement skill: /dc:implement command for test-first increment execution.
