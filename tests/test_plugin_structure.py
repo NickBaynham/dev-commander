@@ -27,3 +27,13 @@ def test_no_emojis_in_root_docs():
     for name in ["README.md", "CHANGELOG.md", "TODO.md", "AGENTS.md"]:
         text = (ROOT / name).read_text()
         assert not any(ord(ch) > 0x2500 for ch in text), f"emoji or symbol in {name}"
+
+
+def test_verify_skills_runs_clean():
+    import subprocess
+    import sys
+    result = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "verify_skills.py")],
+        capture_output=True, text=True,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
