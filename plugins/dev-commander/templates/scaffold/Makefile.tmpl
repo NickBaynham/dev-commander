@@ -1,0 +1,20 @@
+.PHONY: help install lint test build run
+
+help:
+	@echo "{{project_name}} - Make targets: install, lint, test, build, run"
+
+install:
+	pdm install
+
+lint:
+	pdm run ruff check .
+
+test:
+	pdm run pytest
+
+build:
+	@echo "Define build steps for {{project_name}}."
+
+run:
+	docker compose up -d
+	@echo "Define run steps for {{project_name}}."
