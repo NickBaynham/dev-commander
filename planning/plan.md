@@ -1408,7 +1408,8 @@ documents and tells the user which /tc: commands to run next.
 
 1. Establish scope: everything since the last handoff bundle, or the
    plan the user names.
-2. Assemble the bundle at `.dev-commander/handoff/NNNN-<slug>/`:
+2. Assemble the bundle at `.dev-commander/handoff/NNNN-<slug>/`,
+   where NNNN is the next zero-padded sequence number:
    - `summary.md`: what was built and why, in plain prose; links to
      the source plans, increments, and reviews.
    - `features.md`: one section per shipped feature with entry points

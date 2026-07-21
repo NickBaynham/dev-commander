@@ -5,7 +5,7 @@ Dev Commander guides a project through scaffold, plan, implement, review,
 debug, and handoff to [Test Commander](https://github.com/NickBaynham/test-commander)
 via a `/dc:*` command family.
 
-Status: Phase 0 in progress.
+Status: Phases 0-7 complete; v0.1 skill set shipped.
 
 ## Install
 

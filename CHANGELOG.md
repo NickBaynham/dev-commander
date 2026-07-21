@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.1 verification
+
+- Validated the marketplace and plugin manifests with `claude plugin validate`.
+- Ran `make install` end-to-end: pdm install, manifest validation, marketplace registration, and plugin install all succeeded; `dev-commander@dev-commander-marketplace` shows enabled in `claude plugin list`.
+- Smoke-tested the workspace lifecycle in a scratch directory: init_workspace.py created `.dev-commander/` with six subdirectories, status.py reported all six at 0, next_step.py recommended `/dc:plan`.
+- Updated the README status line to reflect Phases 0-7 complete.
+
 ## Phase 7 — dc-handoff skill
 
 - dc-handoff skill: /dc:handoff-to-tc command for Test Commander handoff.
