@@ -66,3 +66,12 @@ def test_next_recommends_implement_when_plan_exists(tmp_path):
     result = run("next_step.py", tmp_path)
     assert result.returncode == 0
     assert "/dc:implement" in result.stdout
+
+
+def test_status_counts_handoff_bundles(tmp_path):
+    run("init_workspace.py", tmp_path)
+    bundle = tmp_path / ".dev-commander" / "handoff" / "0001-example"
+    bundle.mkdir()
+    (bundle / "summary.md").write_text("# summary\n")
+    result = run("status.py", tmp_path)
+    assert "handoff: 1" in result.stdout

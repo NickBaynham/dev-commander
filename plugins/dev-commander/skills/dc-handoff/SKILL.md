@@ -25,5 +25,6 @@ documents and tells the user which /tc: commands to run next.
 3. Use universal software-engineering vocabulary; no internal jargon
    the testing side would need this conversation to decode.
 4. Report the bundle path and recommend next steps: copy or point
-   Test Commander at the bundle and run /tc:learn-from-docs, then
-   /tc:learn-from-specs, in the consuming project.
+   Test Commander at the bundle and run /tc:learn-from-docs to ingest
+   the Markdown bundle, then /tc:review-acceptance-criteria against
+   acceptance-criteria.md, in the consuming project.

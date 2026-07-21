@@ -12,8 +12,9 @@ Generates standard project scaffolding from templates bundled at
 
 1. Ask for project name and one-line description if not provided.
    The name must be a valid Python distribution name (lowercase, hyphens).
-2. Read each template in `templates/scaffold/` and write it into the
-   project root with `.tmpl` stripped from the filename, substituting
+2. Read each template under `templates/scaffold/` (including
+   subdirectories) and write it into the project at the same relative
+   path with `.tmpl` stripped from the filename, substituting
    `{{project_name}}` and `{{project_description}}`.
 3. Never overwrite an existing file. If a target exists, report it and
    skip it. List skipped files at the end.

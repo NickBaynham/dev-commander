@@ -9,7 +9,6 @@ Status: Phases 0-7 complete; v0.1 skill set shipped.
 
 ## Install
 
-    ./bootstrap.sh   # once available; verifies prerequisites
     make install
 
 ## Commands

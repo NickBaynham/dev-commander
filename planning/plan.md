@@ -115,7 +115,7 @@ Workspace layout created in a consuming project by `/dc:init`:
 - Consumes: nothing (first task).
 - Produces: repo layout every later task builds inside; `make test` and `make lint` used by every later task's verify step.
 
-- [ ] **Step 1: Write the failing structure test**
+- [x] **Step 1: Write the failing structure test**
 
 ```python
 # tests/test_plugin_structure.py
@@ -150,12 +150,12 @@ def test_no_emojis_in_root_docs():
         assert not any(ord(ch) > 0x2500 for ch in text), f"emoji or symbol in {name}"
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pdm run pytest tests/test_plugin_structure.py -v` (after `pdm install`; pyproject written in Step 3)
 Expected: FAIL — missing files.
 
-- [ ] **Step 3: Write pyproject.toml**
+- [x] **Step 3: Write pyproject.toml**
 
 ```toml
 [project]
@@ -191,7 +191,7 @@ dev = [
 line-length = 100
 ```
 
-- [ ] **Step 4: Write Makefile**
+- [x] **Step 4: Write Makefile**
 
 ```makefile
 .PHONY: help install uninstall lint test build run verify \
@@ -252,7 +252,7 @@ verify: lint test
 	pdm run python scripts/verify_skills.py
 ```
 
-- [ ] **Step 5: Write .claude-plugin/marketplace.json**
+- [x] **Step 5: Write .claude-plugin/marketplace.json**
 
 ```json
 {
@@ -273,7 +273,7 @@ verify: lint test
 }
 ```
 
-- [ ] **Step 6: Write plugins/dev-commander/.claude-plugin/plugin.json**
+- [x] **Step 6: Write plugins/dev-commander/.claude-plugin/plugin.json**
 
 ```json
 {
@@ -298,7 +298,7 @@ verify: lint test
 }
 ```
 
-- [ ] **Step 7: Write README.md, CHANGELOG.md, TODO.md**
+- [x] **Step 7: Write README.md, CHANGELOG.md, TODO.md**
 
 README.md:
 
@@ -369,7 +369,7 @@ TODO.md:
 - Later: bootstrap.sh prerequisite verifier, docs/ user guides, dc-learning.
 ```
 
-- [ ] **Step 8: Run tests to verify they pass**
+- [x] **Step 8: Run tests to verify they pass**
 
 Run: `pdm install && pdm run pytest tests/test_plugin_structure.py -v`
 Expected: 4 passed.
@@ -377,7 +377,7 @@ Expected: 4 passed.
 Run: `claude plugin validate . && claude plugin validate plugins/dev-commander`
 Expected: both manifests valid.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add -A
@@ -396,7 +396,7 @@ git commit -m "feat: repo scaffold, plugin manifests, structure tests (Phase 0)"
 - Consumes: `plugins/dev-commander/skills/*/SKILL.md` (none exist yet; verifier must pass on zero skills).
 - Produces: `verify_skills(root: Path) -> list[str]` returning a list of violation strings; used by `make verify` and by every skill task's verify step.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `tests/test_plugin_structure.py`:
 
@@ -424,12 +424,12 @@ def test_verify_skills_detects_problems(tmp_path):
     assert any("broken link missing.md" in p for p in problems)
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pdm run pytest tests/test_plugin_structure.py::test_verify_skills_runs_clean -v`
 Expected: FAIL — script does not exist.
 
-- [ ] **Step 3: Write scripts/verify_skills.py**
+- [x] **Step 3: Write scripts/verify_skills.py**
 
 ```python
 """Verify every shipped SKILL.md has valid frontmatter and resolvable local links."""
@@ -480,12 +480,12 @@ if __name__ == "__main__":
     sys.exit(main())
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `pdm run pytest tests/test_plugin_structure.py -v && pdm run ruff check .`
 Expected: all pass, no lint errors.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/verify_skills.py tests/test_plugin_structure.py
@@ -510,7 +510,7 @@ git commit -m "feat: skill verifier dev tool"
 - Consumes: repo layout from Task 1; verifier from Task 2.
 - Produces: the `.dev-commander/` workspace contract (directory names `journal`, `plans`, `increments`, `reviews`, `debug`, `handoff`, file `project.md`) that Tasks 5-9 write into. Helper CLIs: `init_workspace.py <project-root>`, `status.py <project-root>`, `journal.py <project-root> <entry text>`, `next_step.py <project-root>` — each prints a plain-text report and exits 0 on success, 1 on error.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_dc_core.py
@@ -581,14 +581,23 @@ def test_next_recommends_implement_when_plan_exists(tmp_path):
     (tmp_path / ".dev-commander" / "plans" / "0001-example.md").write_text("- [ ] Task 1\n")
     result = run("next_step.py", tmp_path)
     assert "/dc:implement" in result.stdout
+
+
+def test_status_counts_handoff_bundles(tmp_path):
+    run("init_workspace.py", tmp_path)
+    bundle = tmp_path / ".dev-commander" / "handoff" / "0001-example"
+    bundle.mkdir()
+    (bundle / "summary.md").write_text("# summary\n")
+    result = run("status.py", tmp_path)
+    assert "handoff: 1" in result.stdout
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `pdm run pytest tests/test_dc_core.py -v`
 Expected: FAIL — scripts do not exist.
 
-- [ ] **Step 3: Write the workspace template**
+- [x] **Step 3: Write the workspace template**
 
 `plugins/dev-commander/templates/workspace/project.md`:
 
@@ -616,7 +625,7 @@ Local services (docker compose):
 
 Create empty `.gitkeep` files in `journal/`, `plans/`, `increments/`, `reviews/`, `debug/`, `handoff/`.
 
-- [ ] **Step 4: Write init_workspace.py**
+- [x] **Step 4: Write init_workspace.py**
 
 ```python
 """Initialize a .dev-commander/ workspace. Idempotent: existing files are preserved."""
@@ -650,7 +659,7 @@ if __name__ == "__main__":
     sys.exit(main())
 ```
 
-- [ ] **Step 5: Write status.py**
+- [x] **Step 5: Write status.py**
 
 ```python
 """Summarize a .dev-commander/ workspace: artifact counts per directory."""
@@ -668,7 +677,10 @@ def main() -> int:
         return 1
     print(f"workspace: {ws}")
     for d in DIRS:
-        count = len([p for p in (ws / d).glob("*.md")])
+        if d == "handoff":
+            count = len([p for p in (ws / d).iterdir() if p.is_dir()])
+        else:
+            count = len([p for p in (ws / d).glob("*.md")])
         print(f"  {d}: {count}")
     return 0
 
@@ -677,7 +689,7 @@ if __name__ == "__main__":
     sys.exit(main())
 ```
 
-- [ ] **Step 6: Write journal.py**
+- [x] **Step 6: Write journal.py**
 
 ```python
 """Append a dated decision-journal entry to .dev-commander/journal/."""
@@ -707,7 +719,7 @@ if __name__ == "__main__":
     sys.exit(main())
 ```
 
-- [ ] **Step 7: Write next_step.py**
+- [x] **Step 7: Write next_step.py**
 
 ```python
 """Recommend the next /dc: command from workspace state."""
@@ -742,12 +754,12 @@ if __name__ == "__main__":
     sys.exit(main())
 ```
 
-- [ ] **Step 8: Run tests to verify they pass**
+- [x] **Step 8: Run tests to verify they pass**
 
 Run: `pdm run pytest tests/test_dc_core.py -v`
-Expected: 7 passed.
+Expected: 8 passed.
 
-- [ ] **Step 9: Write dc-core SKILL.md**
+- [x] **Step 9: Write dc-core SKILL.md**
 
 ```markdown
 ---
@@ -805,7 +817,7 @@ means /dc:review; otherwise /dc:handoff-to-tc.
 Run: `python3 <plugin-root>/scripts/next_step.py <project-root>`
 ```
 
-- [ ] **Step 10: Verify and commit**
+- [x] **Step 10: Verify and commit**
 
 Run: `make verify`
 Expected: lint clean, all tests pass, `verify_skills: 0 problem(s)`.
@@ -828,6 +840,7 @@ Update CHANGELOG.md (add a Phase 1 section at top) and TODO.md (remove the Phase
 - Create: `plugins/dev-commander/templates/scaffold/README.md.tmpl`
 - Create: `plugins/dev-commander/templates/scaffold/CHANGELOG.md.tmpl`
 - Create: `plugins/dev-commander/templates/scaffold/TODO.md.tmpl`
+- Create: `plugins/dev-commander/templates/scaffold/tests/test_smoke.py.tmpl`
 - Create: `plugins/dev-commander/skills/dc-scaffold/SKILL.md`
 - Test: `tests/test_dc_scaffold.py`
 
@@ -835,7 +848,7 @@ Update CHANGELOG.md (add a Phase 1 section at top) and TODO.md (remove the Phase
 - Consumes: workspace contract from Task 3 (scaffold decisions are journaled via the dc-core journal helper).
 - Produces: templates with `{{project_name}}` and `{{project_description}}` placeholders that the SKILL.md instructs Claude to substitute.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_dc_scaffold.py
@@ -874,14 +887,20 @@ def test_skill_exists():
     skill = ROOT / "plugins" / "dev-commander" / "skills" / "dc-scaffold" / "SKILL.md"
     assert skill.is_file()
     assert "/dc:scaffold" in skill.read_text()
+
+
+def test_smoke_test_template_exists():
+    smoke = TEMPLATES / "tests" / "test_smoke.py.tmpl"
+    assert smoke.is_file()
+    assert "def test_" in smoke.read_text()
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `pdm run pytest tests/test_dc_scaffold.py -v`
 Expected: FAIL — templates missing.
 
-- [ ] **Step 3: Write the templates**
+- [x] **Step 3: Write the templates**
 
 `Makefile.tmpl`:
 
@@ -985,7 +1004,20 @@ Change log: [CHANGELOG.md](CHANGELOG.md). Pending work: [TODO.md](TODO.md).
 - Define the first feature increment with /dc:plan.
 ```
 
-- [ ] **Step 4: Write dc-scaffold SKILL.md**
+`tests/test_smoke.py.tmpl`:
+
+```python
+"""Placeholder test so make test passes on a fresh scaffold.
+
+Replace with real tests via /dc:plan and /dc:implement.
+"""
+
+
+def test_scaffold_is_healthy():
+    assert True
+```
+
+- [x] **Step 4: Write dc-scaffold SKILL.md**
 
 ```markdown
 ---
@@ -1002,8 +1034,9 @@ Generates standard project scaffolding from templates bundled at
 
 1. Ask for project name and one-line description if not provided.
    The name must be a valid Python distribution name (lowercase, hyphens).
-2. Read each template in `templates/scaffold/` and write it into the
-   project root with `.tmpl` stripped from the filename, substituting
+2. Read each template under `templates/scaffold/` (including
+   subdirectories) and write it into the project at the same relative
+   path with `.tmpl` stripped from the filename, substituting
    `{{project_name}}` and `{{project_description}}`.
 3. Never overwrite an existing file. If a target exists, report it and
    skip it. List skipped files at the end.
@@ -1020,12 +1053,12 @@ targets for install, lint, test, build, run; no emojis anywhere; README
 under 400 lines linking to CHANGELOG.md and TODO.md.
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `pdm run pytest tests/test_dc_scaffold.py -v && make verify`
 Expected: all pass, verifier clean.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add -A
@@ -1046,7 +1079,7 @@ Update CHANGELOG.md and TODO.md in the same commit.
 - Consumes: workspace contract from Task 3 (`plans/` directory).
 - Produces: plan file convention `plans/NNNN-<slug>.md` containing `- [ ]` increment checkboxes — the exact format `next_step.py` (Task 3) and dc-implement (Task 6) read.
 
-- [ ] **Step 1: Write the failing shared skill test**
+- [x] **Step 1: Write the failing shared skill test**
 
 ```python
 # tests/test_dc_skills.py
@@ -1077,12 +1110,12 @@ def test_skill_has_frontmatter_and_required_content(name):
         assert marker in text, f"{name}: missing '{marker}'"
 ```
 
-- [ ] **Step 2: Run test to verify dc-plan case fails**
+- [x] **Step 2: Run test to verify dc-plan case fails**
 
 Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-plan]" -v`
 Expected: FAIL — missing SKILL.md.
 
-- [ ] **Step 3: Write dc-plan SKILL.md**
+- [x] **Step 3: Write dc-plan SKILL.md**
 
 ```markdown
 ---
@@ -1125,12 +1158,12 @@ concrete repair. Write the review to
 verdict: ready, ready with repairs, or not ready.
 ```
 
-- [ ] **Step 4: Run test to verify dc-plan case passes**
+- [x] **Step 4: Run test to verify dc-plan case passes**
 
 Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-plan]" -v && make verify`
 Expected: dc-plan passes; verifier clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -1151,7 +1184,7 @@ Update CHANGELOG.md and TODO.md in the same commit.
 - Consumes: plan format from Task 5 (`- [ ]` increments in `plans/NNNN-<slug>.md`).
 - Produces: increment record convention `increments/NNNN-<slug>-<increment>.md`; checks off plan checkboxes, which drives `next_step.py` recommendations.
 
-- [ ] **Step 1: Add the dc-implement case and verify it fails**
+- [x] **Step 1: Add the dc-implement case and verify it fails**
 
 Append to `EXPECTED` in `tests/test_dc_skills.py`:
 
@@ -1162,7 +1195,7 @@ Append to `EXPECTED` in `tests/test_dc_skills.py`:
 Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-implement]" -v`
 Expected: FAIL — missing SKILL.md.
 
-- [ ] **Step 2: Write dc-implement SKILL.md**
+- [x] **Step 2: Write dc-implement SKILL.md**
 
 ```markdown
 ---
@@ -1201,12 +1234,12 @@ blocker in the increment file, and recommend /dc:plan to revise the
 plan. Never silently improvise a different design.
 ```
 
-- [ ] **Step 3: Run test to verify dc-implement case passes**
+- [x] **Step 3: Run test to verify dc-implement case passes**
 
 Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-implement]" -v && make verify`
 Expected: pass; verifier clean.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add -A
@@ -1227,7 +1260,7 @@ Update CHANGELOG.md and TODO.md in the same commit.
 - Consumes: increment records from Task 6; workspace `reviews/` directory from Task 3.
 - Produces: review report convention `reviews/NNNN-<slug>.md` with a verdict line — counted by `next_step.py`.
 
-- [ ] **Step 1: Add the dc-review case and verify it fails**
+- [x] **Step 1: Add the dc-review case and verify it fails**
 
 Append to `EXPECTED` in `tests/test_dc_skills.py`:
 
@@ -1238,7 +1271,7 @@ Append to `EXPECTED` in `tests/test_dc_skills.py`:
 Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-review]" -v`
 Expected: FAIL — missing SKILL.md.
 
-- [ ] **Step 2: Write dc-review SKILL.md**
+- [x] **Step 2: Write dc-review SKILL.md**
 
 ```markdown
 ---
@@ -1277,12 +1310,12 @@ Rubric:
    /dc:implement or by the user.
 ```
 
-- [ ] **Step 3: Run test to verify dc-review case passes**
+- [x] **Step 3: Run test to verify dc-review case passes**
 
 Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-review]" -v && make verify`
 Expected: pass; verifier clean.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add -A
@@ -1303,7 +1336,7 @@ Update CHANGELOG.md and TODO.md in the same commit.
 - Consumes: workspace `debug/` directory from Task 3.
 - Produces: investigation report convention `debug/NNNN-<slug>.md`.
 
-- [ ] **Step 1: Add the dc-debug case and verify it fails**
+- [x] **Step 1: Add the dc-debug case and verify it fails**
 
 Append to `EXPECTED` in `tests/test_dc_skills.py`:
 
@@ -1314,7 +1347,7 @@ Append to `EXPECTED` in `tests/test_dc_skills.py`:
 Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-debug]" -v`
 Expected: FAIL — missing SKILL.md.
 
-- [ ] **Step 2: Write dc-debug SKILL.md**
+- [x] **Step 2: Write dc-debug SKILL.md**
 
 ```markdown
 ---
@@ -1353,12 +1386,12 @@ Never fix before step 3 is complete. If pressed for a quick fix,
 explain that an unproven fix is a guess and continue the workflow.
 ```
 
-- [ ] **Step 3: Run test to verify dc-debug case passes**
+- [x] **Step 3: Run test to verify dc-debug case passes**
 
 Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-debug]" -v && make verify`
 Expected: pass; verifier clean.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add -A
@@ -1377,9 +1410,9 @@ Update CHANGELOG.md and TODO.md in the same commit.
 
 **Interfaces:**
 - Consumes: plans, increments, and reviews from Tasks 5-7.
-- Produces: handoff bundle convention `handoff/NNNN-<slug>/` containing `summary.md`, `features.md`, `acceptance-criteria.md` — inputs for Test Commander's `/tc:learn-from-docs` and `/tc:learn-from-specs`.
+- Produces: handoff bundle convention `handoff/NNNN-<slug>/` containing `summary.md`, `features.md`, `acceptance-criteria.md` — inputs for Test Commander's `/tc:learn-from-docs` and `/tc:review-acceptance-criteria`.
 
-- [ ] **Step 1: Add the dc-handoff case and verify it fails**
+- [x] **Step 1: Add the dc-handoff case and verify it fails**
 
 Append to `EXPECTED` in `tests/test_dc_skills.py`:
 
@@ -1390,7 +1423,7 @@ Append to `EXPECTED` in `tests/test_dc_skills.py`:
 Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-handoff]" -v`
 Expected: FAIL — missing SKILL.md.
 
-- [ ] **Step 2: Write dc-handoff SKILL.md**
+- [x] **Step 2: Write dc-handoff SKILL.md**
 
 ```markdown
 ---
@@ -1420,16 +1453,17 @@ documents and tells the user which /tc: commands to run next.
 3. Use universal software-engineering vocabulary; no internal jargon
    the testing side would need this conversation to decode.
 4. Report the bundle path and recommend next steps: copy or point
-   Test Commander at the bundle and run /tc:learn-from-docs, then
-   /tc:learn-from-specs, in the consuming project.
+   Test Commander at the bundle and run /tc:learn-from-docs to ingest
+   the Markdown bundle, then /tc:review-acceptance-criteria against
+   acceptance-criteria.md, in the consuming project.
 ```
 
-- [ ] **Step 3: Run full suite to verify everything passes**
+- [x] **Step 3: Run full suite to verify everything passes**
 
 Run: `pdm run pytest -v && make verify`
 Expected: all tests pass across all files; verifier clean.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add -A
@@ -1450,17 +1484,17 @@ Update CHANGELOG.md (Phase 7 section) and TODO.md (remove Phase 7; leave the Lat
 - Consumes: everything above.
 - Produces: an installed, working plugin.
 
-- [ ] **Step 1: Validate manifests with the claude CLI**
+- [x] **Step 1: Validate manifests with the claude CLI**
 
 Run: `claude plugin validate . && claude plugin validate plugins/dev-commander`
 Expected: both valid.
 
-- [ ] **Step 2: Install end-to-end**
+- [x] **Step 2: Install end-to-end**
 
 Run: `make install`
 Expected: pdm install succeeds, manifests validate, marketplace registered, plugin installed.
 
-- [ ] **Step 3: Smoke-test the workspace lifecycle in a scratch directory**
+- [x] **Step 3: Smoke-test the workspace lifecycle in a scratch directory**
 
 ```bash
 mkdir -p /tmp/dc-smoke && cd /tmp/dc-smoke
@@ -1471,7 +1505,7 @@ python3 ~/projects/dev-commander/plugins/dev-commander/scripts/next_step.py .
 
 Expected: workspace created; status shows six directories at 0; next recommends /dc:plan.
 
-- [ ] **Step 4: Update README status line and CHANGELOG, commit, push**
+- [x] **Step 4: Update README status line and CHANGELOG, commit, push**
 
 Set README status to "Phases 0-7 complete; v0.1 skill set shipped."
 
@@ -1489,4 +1523,15 @@ Tracked in [TODO.md](../TODO.md). Later phases (not in v0.1): bootstrap.sh prere
 
 ## Completed
 
-(Empty. Move task names here with dates as they ship.)
+All ten tasks shipped 2026-07-21:
+
+- Task 1: Repo scaffold and plugin manifests (4540bf8)
+- Task 2: Skill verifier dev tool (91de91c, fix 95f204b)
+- Task 3: dc-core skill (f06d04e)
+- Task 4: dc-scaffold skill and templates (07e63ea, fix a243663)
+- Task 5: dc-plan skill (b3c102f)
+- Task 6: dc-implement skill (f61665e)
+- Task 7: dc-review skill (c758d28)
+- Task 8: dc-debug skill (fe2c988, fix f04c9b2)
+- Task 9: dc-handoff skill (b6dd81b)
+- Task 10: Install verification and release (f4baf65)

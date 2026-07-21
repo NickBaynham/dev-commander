@@ -33,3 +33,9 @@ def test_skill_exists():
     skill = ROOT / "plugins" / "dev-commander" / "skills" / "dc-scaffold" / "SKILL.md"
     assert skill.is_file()
     assert "/dc:scaffold" in skill.read_text()
+
+
+def test_smoke_test_template_exists():
+    smoke = TEMPLATES / "tests" / "test_smoke.py.tmpl"
+    assert smoke.is_file()
+    assert "def test_" in smoke.read_text()

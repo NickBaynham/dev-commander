@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.1.0 release fixes
+
+- Version bumped to 0.1.0 across manifests and pyproject.
+- dc-handoff now recommends /tc:learn-from-docs and /tc:review-acceptance-criteria (learn-from-specs cannot ingest Markdown).
+- status.py counts handoff bundles as directories.
+- dc-scaffold ships a smoke test template so a fresh scaffold passes make test.
+- Plan checkboxes checked off and Completed section populated.
+- README install section no longer references the unshipped bootstrap.sh.
+
 ## v0.1 verification
 
 - Validated the marketplace and plugin manifests with `claude plugin validate`.

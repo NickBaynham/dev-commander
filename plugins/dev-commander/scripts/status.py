@@ -13,7 +13,10 @@ def main() -> int:
         return 1
     print(f"workspace: {ws}")
     for d in DIRS:
-        count = len([p for p in (ws / d).glob("*.md")])
+        if d == "handoff":
+            count = len([p for p in (ws / d).iterdir() if p.is_dir()])
+        else:
+            count = len([p for p in (ws / d).glob("*.md")])
         print(f"  {d}: {count}")
     return 0
 
