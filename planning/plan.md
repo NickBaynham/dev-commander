@@ -1429,7 +1429,7 @@ Expected: FAIL — missing SKILL.md.
 ```markdown
 ---
 name: dc-handoff
-description: Test Commander handoff for Dev Commander. Use when the user runs /dc:handoff-to-tc or asks to package what was built for testing. Assembles plans, increment records, and reviews into documents Test Commander's /tc:learn-from-docs and /tc:learn-from-specs commands can ingest.
+description: Test Commander handoff for Dev Commander. Use when the user runs /dc:handoff-to-tc or asks to package what was built for testing. Assembles plans, increment records, and reviews into documents Test Commander's /tc:learn-from-docs and /tc:review-acceptance-criteria commands can ingest.
 ---
 
 # dc-handoff
