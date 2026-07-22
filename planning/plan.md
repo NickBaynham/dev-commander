@@ -1536,3 +1536,975 @@ All ten tasks shipped 2026-07-21:
 - Task 8: dc-debug skill (fe2c988, fix f04c9b2)
 - Task 9: dc-handoff skill (b6dd81b)
 - Task 10: Install verification and release (f4baf65)
+
+---
+
+# v0.2 Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Generalize Dev Commander from a Python-only inner loop into a general software development agent: a release workflow, multi-stack scaffolding (python, node-ts, go), an architecture/design phase, a branch-and-PR workflow, and governed lesson capture.
+
+**Architecture:** Same skill-pack architecture as v0.1. One new Python helper (bump_version.py, per DC6); everything else is Markdown skills plus templates. The scaffold templates are reorganized into stack families under `templates/scaffold/<stack>/` with shared docs in `common/`. Two new workspace directories (`design/`, `learning/`) extend the `.dev-commander/` contract.
+
+**Tech Stack:** Unchanged — Claude Code plugin format, Python 3.12, pdm, pytest, ruff, Make.
+
+## v0.2 Global Constraints
+
+All v0.1 Global Constraints still apply verbatim. Additions:
+
+- Every stack family's Makefile must provide install, lint, test, build, run targets; the conventions (CHANGELOG/TODO/README, no emojis) are universal across stacks.
+- A fresh scaffold of ANY stack must pass its own health check (`make lint test`) with zero manual editing.
+- New workspace directories keep the established artifact conventions: `NNNN-<slug>.md` with NNNN the next zero-padded sequence number.
+- The EXPECTED dict in tests/test_dc_skills.py and the STACKS dict in tests/test_dc_scaffold.py grow one entry per task, keeping `make verify` green between tasks.
+
+## v0.2 Decisions
+
+| # | Decision |
+| --- | --- |
+| DC6 | Amends DC3: dc-release ships one Python helper (`bump_version.py`) inside the plugin, because version sync across manifests is mechanical and error-prone (proven by the v0.1 release fix wave). All other non-core skills remain Markdown-only. |
+| DC7 | Scaffold templates are organized by stack family under `templates/scaffold/<stack>/`, with stack-agnostic docs under `templates/scaffold/common/`. v0.2 ships python, node-ts, and go. |
+| DC8 | dc-design artifacts live under `.dev-commander/design/`. Design is optional per feature: small increments may go straight to /dc:plan. |
+| DC9 | dc-branch never pushes or merges without explicit user direction; it prepares branches and PR descriptions. |
+| DC10 | dc-learning promotion into project guidance requires human approval; candidate lessons never rewrite guidance automatically (mirrors tc-learning). |
+
+## v0.2 File Structure (additions and moves)
+
+```
+plugins/dev-commander/
+├── scripts/
+│   └── bump_version.py            # NEW (DC6) — used by dc-release
+├── templates/
+│   ├── workspace/
+│   │   ├── design/.gitkeep        # NEW (Task 15)
+│   │   └── learning/.gitkeep      # NEW (Task 17)
+│   └── scaffold/                  # RESTRUCTURED (Task 12)
+│       ├── common/                # stack-agnostic docs
+│       │   ├── README.md.tmpl
+│       │   ├── CHANGELOG.md.tmpl
+│       │   └── TODO.md.tmpl
+│       ├── python/                # moved from flat layout
+│       │   ├── Makefile.tmpl
+│       │   ├── pyproject.toml.tmpl
+│       │   ├── docker-compose.yml.tmpl
+│       │   └── tests/test_smoke.py.tmpl
+│       ├── node-ts/               # NEW (Task 13)
+│       │   ├── Makefile.tmpl
+│       │   ├── package.json.tmpl
+│       │   ├── tsconfig.json.tmpl
+│       │   ├── src/index.ts.tmpl
+│       │   └── tests/smoke.test.ts.tmpl
+│       └── go/                    # NEW (Task 14)
+│           ├── Makefile.tmpl
+│           ├── go.mod.tmpl
+│           ├── main.go.tmpl
+│           └── main_test.go.tmpl
+└── skills/
+    ├── dc-release/SKILL.md        # NEW (Task 11)
+    ├── dc-design/SKILL.md         # NEW (Task 15)
+    ├── dc-branch/SKILL.md         # NEW (Task 16)
+    └── dc-learning/SKILL.md       # NEW (Task 17)
+
+tests/
+└── test_dc_release.py             # NEW (Task 11)
+```
+
+Workspace layout after v0.2 (`.dev-commander/`): project.md plus `journal/`, `plans/`, `increments/`, `reviews/`, `debug/`, `design/`, `learning/`, `handoff/`.
+
+---
+
+### Task 11: dc-release skill and bump_version helper (Phase 8)
+
+**Files:**
+- Create: `plugins/dev-commander/scripts/bump_version.py`
+- Create: `plugins/dev-commander/skills/dc-release/SKILL.md`
+- Create: `tests/test_dc_release.py`
+- Modify: `tests/test_dc_skills.py` (append the dc-release entry to EXPECTED)
+
+**Interfaces:**
+- Consumes: dc-core's journal helper (referenced by SKILL.md step 8).
+- Produces: CLI `bump_version.py <project-root> <version>` — updates the version field in pyproject.toml and package.json where present; prints one `updated <file>` line per file; exits 0 on success, 1 on invalid semver or when no version files were found.
+
+- [ ] **Step 1: Write the failing tests**
+
+Append to `EXPECTED` in `tests/test_dc_skills.py`:
+
+```python
+    "dc-release": ["/dc:release", "bump_version", "CHANGELOG"],
+```
+
+Create `tests/test_dc_release.py`:
+
+```python
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+SCRIPT = ROOT / "plugins" / "dev-commander" / "scripts" / "bump_version.py"
+
+
+def run(*args):
+    return subprocess.run(
+        [sys.executable, str(SCRIPT), *map(str, args)],
+        capture_output=True, text=True,
+    )
+
+
+def test_bumps_pyproject(tmp_path):
+    (tmp_path / "pyproject.toml").write_text('[project]\nname = "x"\nversion = "0.1.0"\n')
+    result = run(tmp_path, "0.2.0")
+    assert result.returncode == 0, result.stderr
+    assert 'version = "0.2.0"' in (tmp_path / "pyproject.toml").read_text()
+
+
+def test_bumps_package_json(tmp_path):
+    (tmp_path / "package.json").write_text('{"name": "x", "version": "0.1.0"}\n')
+    result = run(tmp_path, "1.0.0")
+    assert result.returncode == 0
+    assert json.loads((tmp_path / "package.json").read_text())["version"] == "1.0.0"
+
+
+def test_rejects_non_semver(tmp_path):
+    (tmp_path / "pyproject.toml").write_text('version = "0.1.0"\n')
+    result = run(tmp_path, "v2")
+    assert result.returncode == 1
+
+
+def test_fails_when_no_version_files(tmp_path):
+    result = run(tmp_path, "0.2.0")
+    assert result.returncode == 1
+```
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+Run: `pdm run pytest tests/test_dc_release.py "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-release]" -v`
+Expected: FAIL — bump_version.py and SKILL.md do not exist.
+
+- [ ] **Step 3: Write bump_version.py**
+
+```python
+"""Bump the project version in pyproject.toml and package.json where present."""
+import json
+import re
+import sys
+from pathlib import Path
+
+
+def bump(root: Path, version: str) -> list[str]:
+    updated = []
+    pyproject = root / "pyproject.toml"
+    if pyproject.is_file():
+        text, count = re.subn(
+            r'^version = "[^"]+"', f'version = "{version}"',
+            pyproject.read_text(), count=1, flags=re.MULTILINE,
+        )
+        if count:
+            pyproject.write_text(text)
+            updated.append("pyproject.toml")
+    package = root / "package.json"
+    if package.is_file():
+        data = json.loads(package.read_text())
+        if "version" in data:
+            data["version"] = version
+            package.write_text(json.dumps(data, indent=2) + "\n")
+            updated.append("package.json")
+    return updated
+
+
+def main() -> int:
+    if len(sys.argv) != 3:
+        print("usage: bump_version.py <project-root> <version>")
+        return 1
+    root, version = Path(sys.argv[1]), sys.argv[2]
+    if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+        print(f"not a semantic version: {version}")
+        return 1
+    updated = bump(root, version)
+    if not updated:
+        print("no version files found (pyproject.toml, package.json)")
+        return 1
+    for name in updated:
+        print(f"updated {name}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+```
+
+- [ ] **Step 4: Write dc-release SKILL.md**
+
+```markdown
+---
+name: dc-release
+description: Release workflow for Dev Commander. Use when the user runs /dc:release or asks to cut a version, bump version numbers, tag a release, or write release notes. Synchronizes the version across manifests with the bump_version helper, adds a CHANGELOG release section, verifies, commits, and tags.
+---
+
+# dc-release
+
+Closes the lifecycle: takes a verified working tree to a tagged,
+documented release. Version drift across manifests is the failure this
+skill exists to prevent.
+
+The helper lives at `scripts/bump_version.py` relative to this plugin's
+root; resolve the path relative to this SKILL.md's own location, as
+described in dc-core.
+
+## /dc:release
+
+1. Confirm the working tree is clean and the project's verify command
+   passes (make verify, or make lint test when no verify target
+   exists). A release never starts from a dirty or failing tree.
+2. Determine the new semantic version with the user (MAJOR.MINOR.PATCH).
+3. Run the bump helper:
+
+   `python3 <plugin-root>/scripts/bump_version.py <project-root> <version>`
+
+   It updates pyproject.toml and package.json where present. Then ask
+   the user about any additional files that carry the version (plugin
+   manifests, docs, install scripts) and update those to match. Every
+   statement of the version in the repo must agree.
+4. Add a `## v<version>` section at the top of CHANGELOG.md
+   summarizing what shipped since the previous release.
+5. Update the README status line if it names a version.
+6. Re-run the verify command, then commit as
+   `chore: release v<version>` and tag `v<version>`.
+7. Ask before pushing; pushing the commit and tag is the user's call.
+8. Journal the release with the dc-core journal helper.
+```
+
+- [ ] **Step 5: Run tests to verify they pass**
+
+Run: `pdm run pytest tests/test_dc_release.py "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-release]" -v && make verify`
+Expected: all pass; verifier clean.
+
+- [ ] **Step 6: Commit**
+
+Update CHANGELOG.md (Phase 8 section at top) and TODO.md (remove the Phase 8 line) in the same commit.
+
+```bash
+git add -A
+git commit -m "feat: dc-release skill with bump_version helper (Phase 8)"
+```
+
+---
+
+### Task 12: Multi-stack scaffold restructure — common + python families (Phase 9)
+
+**Files:**
+- Move: `plugins/dev-commander/templates/scaffold/{README,CHANGELOG,TODO}.md.tmpl` to `plugins/dev-commander/templates/scaffold/common/`
+- Move: `plugins/dev-commander/templates/scaffold/{Makefile,pyproject.toml,docker-compose.yml}.tmpl` and `tests/test_smoke.py.tmpl` to `plugins/dev-commander/templates/scaffold/python/`
+- Modify: `plugins/dev-commander/skills/dc-scaffold/SKILL.md` (full rewrite below)
+- Modify: `tests/test_dc_scaffold.py` (full rewrite below)
+
+**Interfaces:**
+- Consumes: the v0.1 flat template set (moved, contents unchanged).
+- Produces: the layout contract `templates/scaffold/common/` + `templates/scaffold/<stack>/` that Tasks 13-14 add families to, and the STACKS dict in tests/test_dc_scaffold.py they append to.
+
+- [ ] **Step 1: Rewrite the test file (failing first)**
+
+Replace `tests/test_dc_scaffold.py` entirely with:
+
+```python
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parent.parent
+SCAFFOLD = ROOT / "plugins" / "dev-commander" / "templates" / "scaffold"
+
+COMMON = ["README.md.tmpl", "CHANGELOG.md.tmpl", "TODO.md.tmpl"]
+
+# Tasks 13-14 append entries as their stack families ship.
+STACKS = {
+    "python": [
+        "Makefile.tmpl", "pyproject.toml.tmpl", "docker-compose.yml.tmpl",
+        "tests/test_smoke.py.tmpl",
+    ],
+}
+
+
+def test_common_templates_exist():
+    for name in COMMON:
+        assert (SCAFFOLD / "common" / name).is_file(), f"missing common/{name}"
+
+
+@pytest.mark.parametrize("stack", STACKS)
+def test_stack_family_complete(stack):
+    for name in STACKS[stack]:
+        assert (SCAFFOLD / stack / name).is_file(), f"missing {stack}/{name}"
+
+
+@pytest.mark.parametrize("stack", STACKS)
+def test_stack_makefile_has_required_targets(stack):
+    text = (SCAFFOLD / stack / "Makefile.tmpl").read_text()
+    for target in ["install:", "lint:", "test:", "build:", "run:"]:
+        assert target in text, f"{stack}/Makefile.tmpl missing {target}"
+
+
+def test_scaffold_root_has_only_family_dirs():
+    entries = {p.name for p in SCAFFOLD.iterdir()}
+    assert entries == {"common"} | set(STACKS)
+
+
+def test_python_pyproject_uses_pdm():
+    assert "pdm" in (SCAFFOLD / "python" / "pyproject.toml.tmpl").read_text()
+
+
+def test_templates_use_placeholders():
+    assert "{{project_name}}" in (SCAFFOLD / "common" / "README.md.tmpl").read_text()
+
+
+def test_skill_exists():
+    skill = ROOT / "plugins" / "dev-commander" / "skills" / "dc-scaffold" / "SKILL.md"
+    assert skill.is_file()
+    assert "/dc:scaffold" in skill.read_text()
+```
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+Run: `pdm run pytest tests/test_dc_scaffold.py -v`
+Expected: FAIL — common/ and python/ directories do not exist yet.
+
+- [ ] **Step 3: Move the templates**
+
+```bash
+cd plugins/dev-commander/templates/scaffold
+mkdir common python
+git mv README.md.tmpl CHANGELOG.md.tmpl TODO.md.tmpl common/
+git mv Makefile.tmpl pyproject.toml.tmpl docker-compose.yml.tmpl python/
+git mv tests python/tests
+cd -
+```
+
+Template contents are unchanged — only locations move.
+
+- [ ] **Step 4: Rewrite dc-scaffold SKILL.md**
+
+Replace `plugins/dev-commander/skills/dc-scaffold/SKILL.md` entirely with:
+
+```markdown
+---
+name: dc-scaffold
+description: Project scaffolding for Dev Commander. Use when the user runs /dc:scaffold or asks to set up a new project. Offers stack families (python, node-ts, go) with a shared documentation set, generating a Makefile with install, lint, test, build, and run targets plus README, CHANGELOG, and TODO from bundled templates.
+---
+
+# dc-scaffold
+
+Generates project scaffolding from templates bundled at
+`<plugin-root>/templates/scaffold/`. Templates are organized as
+`common/` (stack-agnostic docs) plus one directory per stack family.
+
+## /dc:scaffold
+
+1. Ask for the project name, a one-line description, and the stack if
+   not provided. The name must be lowercase with hyphens. The
+   available stacks are the subdirectories of `templates/scaffold/`
+   other than `common`.
+2. Write every template under `templates/scaffold/common/` and under
+   the chosen stack's directory into the project at the same relative
+   path with `.tmpl` stripped from the filename, substituting
+   `{{project_name}}` and `{{project_description}}`.
+3. Never overwrite an existing file. If a target exists, report it and
+   skip it. List skipped files at the end.
+4. Only include docker-compose.yml when the project needs local
+   services; ask if unclear. Databases and system tools always run on
+   docker locally. When skipping docker-compose.yml, also remove any
+   `docker compose up -d` line from the generated Makefile's run
+   target so `make run` still works.
+5. After writing, run the stack's install target and `make lint test`
+   to prove the scaffold is healthy, then journal the scaffold
+   decision with the dc-core journal helper.
+
+Rules the generated project must satisfy regardless of stack: Make
+targets for install, lint, test, build, run; no emojis anywhere;
+README under 400 lines linking to CHANGELOG.md and TODO.md.
+```
+
+- [ ] **Step 5: Run tests to verify they pass**
+
+Run: `pdm run pytest tests/test_dc_scaffold.py -v && make verify`
+Expected: all pass; verifier clean.
+
+- [ ] **Step 6: Update this plan's v0.1 File Structure tree**
+
+In the v0.1 File Structure section, replace the flat `scaffold/` subtree with the family layout shown in the v0.2 File Structure section (common/, python/ only at this point).
+
+- [ ] **Step 7: Commit**
+
+Update CHANGELOG.md (Phase 9 section) and TODO.md (remove the Phase 9 line) in the same commit.
+
+```bash
+git add -A
+git commit -m "feat: multi-stack scaffold layout with common and python families (Phase 9)"
+```
+
+---
+
+### Task 13: node-ts scaffold family (Phase 10)
+
+**Files:**
+- Create: `plugins/dev-commander/templates/scaffold/node-ts/Makefile.tmpl`
+- Create: `plugins/dev-commander/templates/scaffold/node-ts/package.json.tmpl`
+- Create: `plugins/dev-commander/templates/scaffold/node-ts/tsconfig.json.tmpl`
+- Create: `plugins/dev-commander/templates/scaffold/node-ts/src/index.ts.tmpl`
+- Create: `plugins/dev-commander/templates/scaffold/node-ts/tests/smoke.test.ts.tmpl`
+- Modify: `tests/test_dc_scaffold.py` (append the node-ts entry to STACKS)
+
+**Interfaces:**
+- Consumes: the family layout and STACKS dict from Task 12.
+- Produces: a complete node-ts family whose fresh scaffold passes `npm install && make lint test`.
+
+- [ ] **Step 1: Add the node-ts case and verify it fails**
+
+Append to `STACKS` in `tests/test_dc_scaffold.py`:
+
+```python
+    "node-ts": [
+        "Makefile.tmpl", "package.json.tmpl", "tsconfig.json.tmpl",
+        "src/index.ts.tmpl", "tests/smoke.test.ts.tmpl",
+    ],
+```
+
+Run: `pdm run pytest "tests/test_dc_scaffold.py::test_stack_family_complete[node-ts]" -v`
+Expected: FAIL — node-ts templates do not exist.
+
+- [ ] **Step 2: Write the templates**
+
+`node-ts/Makefile.tmpl`:
+
+```makefile
+.PHONY: help install lint test build run
+
+help:
+	@echo "{{project_name}} - Make targets: install, lint, test, build, run"
+
+install:
+	npm install
+
+lint:
+	npm run lint
+
+test:
+	npm test
+
+build:
+	npm run build
+
+run:
+	npm start
+```
+
+`node-ts/package.json.tmpl`:
+
+```json
+{
+  "name": "{{project_name}}",
+  "version": "0.0.0",
+  "description": "{{project_description}}",
+  "type": "module",
+  "scripts": {
+    "lint": "tsc --noEmit",
+    "test": "vitest run",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}
+```
+
+`node-ts/tsconfig.json.tmpl`:
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "dist",
+    "strict": true
+  },
+  "include": ["src", "tests"]
+}
+```
+
+`node-ts/src/index.ts.tmpl`:
+
+```typescript
+export function greet(name: string): string {
+  return `{{project_name}} greets ${name}`;
+}
+```
+
+`node-ts/tests/smoke.test.ts.tmpl`:
+
+```typescript
+import { expect, test } from "vitest";
+import { greet } from "../src/index.js";
+
+test("scaffold is healthy", () => {
+  expect(greet("world")).toContain("world");
+});
+```
+
+- [ ] **Step 3: Run tests to verify they pass**
+
+Run: `pdm run pytest tests/test_dc_scaffold.py -v && make verify`
+Expected: all pass (node-ts parametrized cases included); verifier clean.
+
+- [ ] **Step 4: Prove a fresh node-ts scaffold is healthy**
+
+In a scratch directory, copy the common and node-ts templates with `.tmpl` stripped (substituting `demo-app` for `{{project_name}}`), then run `npm install && make lint test`.
+Expected: lint (tsc) clean, 1 vitest test passes. Remove the scratch directory afterwards. If npm is unavailable in the environment, record that in the commit message body instead and note it for the reviewer.
+
+- [ ] **Step 5: Commit**
+
+Update CHANGELOG.md (Phase 10 section) and TODO.md (remove the Phase 10 line) in the same commit.
+
+```bash
+git add -A
+git commit -m "feat: node-ts scaffold family (Phase 10)"
+```
+
+---
+
+### Task 14: go scaffold family (Phase 11)
+
+**Files:**
+- Create: `plugins/dev-commander/templates/scaffold/go/Makefile.tmpl`
+- Create: `plugins/dev-commander/templates/scaffold/go/go.mod.tmpl`
+- Create: `plugins/dev-commander/templates/scaffold/go/main.go.tmpl`
+- Create: `plugins/dev-commander/templates/scaffold/go/main_test.go.tmpl`
+- Modify: `tests/test_dc_scaffold.py` (append the go entry to STACKS)
+
+**Interfaces:**
+- Consumes: the family layout and STACKS dict from Task 12.
+- Produces: a complete go family whose fresh scaffold passes `make lint test`.
+
+- [ ] **Step 1: Add the go case and verify it fails**
+
+Append to `STACKS` in `tests/test_dc_scaffold.py`:
+
+```python
+    "go": [
+        "Makefile.tmpl", "go.mod.tmpl", "main.go.tmpl", "main_test.go.tmpl",
+    ],
+```
+
+Run: `pdm run pytest "tests/test_dc_scaffold.py::test_stack_family_complete[go]" -v`
+Expected: FAIL — go templates do not exist.
+
+- [ ] **Step 2: Write the templates**
+
+`go/Makefile.tmpl`:
+
+```makefile
+.PHONY: help install lint test build run
+
+help:
+	@echo "{{project_name}} - Make targets: install, lint, test, build, run"
+
+install:
+	go mod tidy
+
+lint:
+	go vet ./...
+
+test:
+	go test ./...
+
+build:
+	go build -o bin/{{project_name}} .
+
+run:
+	go run .
+```
+
+`go/go.mod.tmpl`:
+
+```
+module {{project_name}}
+
+go 1.23
+```
+
+`go/main.go.tmpl`:
+
+```go
+package main
+
+import "fmt"
+
+// Greet returns a greeting for name.
+func Greet(name string) string {
+	return "{{project_name}} greets " + name
+}
+
+func main() {
+	fmt.Println(Greet("world"))
+}
+```
+
+`go/main_test.go.tmpl`:
+
+```go
+package main
+
+import (
+	"strings"
+	"testing"
+)
+
+func TestScaffoldIsHealthy(t *testing.T) {
+	if !strings.Contains(Greet("world"), "world") {
+		t.Fatal("greeting missing name")
+	}
+}
+```
+
+- [ ] **Step 3: Run tests to verify they pass**
+
+Run: `pdm run pytest tests/test_dc_scaffold.py -v && make verify`
+Expected: all pass (go parametrized cases included); verifier clean.
+
+- [ ] **Step 4: Prove a fresh go scaffold is healthy**
+
+In a scratch directory, copy the common and go templates with `.tmpl` stripped (substituting `demo-app` for `{{project_name}}`), then run `make lint test`.
+Expected: go vet clean, 1 test passes. Remove the scratch directory afterwards. If the go toolchain is unavailable in the environment, record that in the commit message body instead and note it for the reviewer.
+
+- [ ] **Step 5: Commit**
+
+Update CHANGELOG.md (Phase 11 section) and TODO.md (remove the Phase 11 line) in the same commit.
+
+```bash
+git add -A
+git commit -m "feat: go scaffold family (Phase 11)"
+```
+
+---
+
+### Task 15: dc-design skill and design/ workspace directory (Phase 12)
+
+**Files:**
+- Create: `plugins/dev-commander/skills/dc-design/SKILL.md`
+- Create: `plugins/dev-commander/templates/workspace/design/.gitkeep`
+- Modify: `plugins/dev-commander/scripts/status.py` (add "design" to DIRS)
+- Modify: `tests/test_dc_core.py` (add "design" to DIRS)
+- Modify: `tests/test_dc_skills.py` (append the dc-design entry to EXPECTED)
+
+**Interfaces:**
+- Consumes: the workspace contract from Task 3; the EXPECTED dict from Task 5.
+- Produces: design docs at `.dev-commander/design/NNNN-<slug>.md` and ADRs at `.dev-commander/design/adr-NNNN-<slug>.md` that /dc:plan consumes as input.
+
+- [ ] **Step 1: Add the failing test cases**
+
+Append to `EXPECTED` in `tests/test_dc_skills.py`:
+
+```python
+    "dc-design": ["/dc:design", "design/", "ADR"],
+```
+
+In `tests/test_dc_core.py`, change the DIRS constant to:
+
+```python
+DIRS = ["journal", "plans", "increments", "reviews", "debug", "design", "handoff"]
+```
+
+Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-design]" tests/test_dc_core.py::test_init_creates_workspace -v`
+Expected: both FAIL — SKILL.md and the design/ template directory do not exist.
+
+- [ ] **Step 2: Implement**
+
+Create `plugins/dev-commander/templates/workspace/design/.gitkeep` (empty file).
+
+In `plugins/dev-commander/scripts/status.py`, change the DIRS constant to:
+
+```python
+DIRS = ["journal", "plans", "increments", "reviews", "debug", "design", "handoff"]
+```
+
+Create `plugins/dev-commander/skills/dc-design/SKILL.md`:
+
+```markdown
+---
+name: dc-design
+description: Architecture design and decision records for Dev Commander. Use when the user runs /dc:design or /dc:adr, or asks for a design document or an architecture decision record before planning a feature. Produces design docs and ADRs under .dev-commander/design/ that dc-plan consumes.
+---
+
+# dc-design
+
+Fills the lifecycle phase between requirements and planning. Design is
+optional per feature: small increments may go straight to /dc:plan;
+features with architectural weight get a design doc or an ADR first.
+
+## /dc:design
+
+1. Gather inputs: the feature request, BRD, or user story, plus the
+   parts of the codebase the feature touches.
+2. Write a short design doc to `.dev-commander/design/NNNN-<slug>.md`,
+   where NNNN is the next zero-padded sequence number, with sections:
+   Goal (one sentence), Context, Approach (2-3 paragraphs),
+   Alternatives considered with one-line reasons for rejection,
+   Interfaces (exact names and types other components will consume),
+   and Risks.
+3. Keep it short. A design doc that exceeds two screens should be
+   split or simplified before planning proceeds.
+4. Recommend /dc:plan next, pointing it at the design doc.
+
+## /dc:adr
+
+Record one architecture decision at
+`.dev-commander/design/adr-NNNN-<slug>.md`, where NNNN is the next
+zero-padded sequence number, with sections: Status (proposed,
+accepted, superseded), Context, Decision, Consequences. One decision
+per record. ADRs are never deleted; a reversed decision gets a new
+ADR that names and supersedes the old one.
+```
+
+- [ ] **Step 3: Run tests to verify they pass**
+
+Run: `pdm run pytest tests/test_dc_core.py tests/test_dc_skills.py -v && make verify`
+Expected: all pass; verifier clean.
+
+- [ ] **Step 4: Update the workspace layout in this plan**
+
+In both workspace-layout listings (v0.1 section and the v0.2 note above), confirm `design/` appears between `debug/` and `handoff/`.
+
+- [ ] **Step 5: Commit**
+
+Update CHANGELOG.md (Phase 12 section) and TODO.md (remove the Phase 12 line) in the same commit.
+
+```bash
+git add -A
+git commit -m "feat: dc-design skill and design workspace directory (Phase 12)"
+```
+
+---
+
+### Task 16: dc-branch skill (Phase 13)
+
+**Files:**
+- Create: `plugins/dev-commander/skills/dc-branch/SKILL.md`
+- Modify: `tests/test_dc_skills.py` (append the dc-branch entry to EXPECTED)
+
+**Interfaces:**
+- Consumes: plan filenames from dc-plan (`NNNN-<slug>.md`), increment records from dc-implement, review reports from dc-review.
+- Produces: branch naming convention `dc/NNNN-<slug>` matching the plan filename.
+
+- [ ] **Step 1: Add the dc-branch case and verify it fails**
+
+Append to `EXPECTED` in `tests/test_dc_skills.py`:
+
+```python
+    "dc-branch": ["/dc:branch", "/dc:pr", "increment records"],
+```
+
+Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-branch]" -v`
+Expected: FAIL — missing SKILL.md.
+
+- [ ] **Step 2: Write dc-branch SKILL.md**
+
+```markdown
+---
+name: dc-branch
+description: Branch and pull-request workflow for Dev Commander. Use when the user runs /dc:branch or /dc:pr, or asks to start a feature branch for a plan or open a pull request from completed increments. Prepares branches and PR descriptions; never pushes or merges without explicit user direction.
+---
+
+# dc-branch
+
+Team-development workflow around plans. Prepares branches and pull
+requests; the user decides when anything leaves the machine (DC9).
+
+## /dc:branch
+
+1. Identify the plan the work belongs to: the active plan by default,
+   or the plan the user names.
+2. Create and switch to a branch named `dc/NNNN-<slug>` matching the
+   plan's filename. If the branch already exists, switch to it.
+3. Journal the branch creation with the dc-core journal helper.
+   Subsequent /dc:implement increments commit to this branch.
+
+## /dc:pr
+
+1. Confirm the branch's plan has no unchecked increments and the
+   latest review verdict is approve, or approve with repairs that
+   have been applied.
+2. Draft the pull request description from the workspace artifacts:
+   a summary from the plan header, a change list and test evidence
+   from the increment records, and outcomes from the review reports.
+3. Show the draft to the user. Only after they approve: push the
+   branch and open the PR with `gh pr create`. Never merge; merging
+   is the user's decision in their review tool.
+```
+
+- [ ] **Step 3: Run tests to verify they pass**
+
+Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-branch]" -v && make verify`
+Expected: pass; verifier clean.
+
+- [ ] **Step 4: Commit**
+
+Update CHANGELOG.md (Phase 13 section) and TODO.md (remove the Phase 13 line) in the same commit.
+
+```bash
+git add -A
+git commit -m "feat: dc-branch skill (Phase 13)"
+```
+
+---
+
+### Task 17: dc-learning skill and learning/ workspace directory (Phase 14)
+
+**Files:**
+- Create: `plugins/dev-commander/skills/dc-learning/SKILL.md`
+- Create: `plugins/dev-commander/templates/workspace/learning/.gitkeep`
+- Modify: `plugins/dev-commander/scripts/status.py` (add "learning" to DIRS)
+- Modify: `tests/test_dc_core.py` (add "learning" to DIRS)
+- Modify: `tests/test_dc_skills.py` (append the dc-learning entry to EXPECTED)
+
+**Interfaces:**
+- Consumes: the workspace contract; dc-debug investigations and dc-review reports as lesson sources.
+- Produces: lesson files at `.dev-commander/learning/NNNN-<slug>.md` carrying a `Status:` line (candidate, accepted, rejected).
+
+- [ ] **Step 1: Add the failing test cases**
+
+Append to `EXPECTED` in `tests/test_dc_skills.py`:
+
+```python
+    "dc-learning": ["/dc:learn", "learning/", "candidate"],
+```
+
+In `tests/test_dc_core.py`, change the DIRS constant to:
+
+```python
+DIRS = [
+    "journal", "plans", "increments", "reviews", "debug",
+    "design", "learning", "handoff",
+]
+```
+
+Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-learning]" tests/test_dc_core.py::test_init_creates_workspace -v`
+Expected: both FAIL — SKILL.md and the learning/ template directory do not exist.
+
+- [ ] **Step 2: Implement**
+
+Create `plugins/dev-commander/templates/workspace/learning/.gitkeep` (empty file).
+
+In `plugins/dev-commander/scripts/status.py`, change the DIRS constant to:
+
+```python
+DIRS = [
+    "journal", "plans", "increments", "reviews", "debug",
+    "design", "learning", "handoff",
+]
+```
+
+Create `plugins/dev-commander/skills/dc-learning/SKILL.md`:
+
+```markdown
+---
+name: dc-learning
+description: Governed lesson capture for Dev Commander. Use when the user runs /dc:learn or /dc:promote-lesson, or asks to record a lesson from a debugging session, review, or release. Captures candidate lessons under .dev-commander/learning/ and promotes them into project guidance only with human approval.
+---
+
+# dc-learning
+
+The improvement loop. Lessons start as candidates and change project
+guidance only when a human approves the promotion (DC10).
+
+## /dc:learn
+
+1. Capture one lesson at `.dev-commander/learning/NNNN-<slug>.md`,
+   where NNNN is the next zero-padded sequence number, with sections:
+   Status (candidate), Source (the debug report, review, or event
+   that produced it), Lesson (one paragraph), and Proposed guidance
+   (the exact wording that would be added to the project's agent
+   file or docs if accepted).
+2. Candidates change nothing by themselves. Do not edit any guidance
+   file during capture.
+
+## /dc:promote-lesson
+
+1. Show the named candidate (or list all candidates if none named)
+   and its proposed guidance to the user.
+2. Only with the user's explicit approval: apply the proposed
+   guidance edit, set the lesson's Status to accepted, and journal
+   the promotion with the dc-core journal helper.
+3. If the user declines, set Status to rejected and record their
+   reason in the lesson file.
+```
+
+- [ ] **Step 3: Run tests to verify they pass**
+
+Run: `pdm run pytest tests/test_dc_core.py tests/test_dc_skills.py -v && make verify`
+Expected: all pass; verifier clean.
+
+- [ ] **Step 4: Update the workspace layout in this plan**
+
+In both workspace-layout listings, confirm `learning/` appears between `design/` and `handoff/`.
+
+- [ ] **Step 5: Commit**
+
+Update CHANGELOG.md (Phase 14 section) and TODO.md (remove the Phase 14 line) in the same commit.
+
+```bash
+git add -A
+git commit -m "feat: dc-learning skill and learning workspace directory (Phase 14)"
+```
+
+---
+
+### Task 18: v0.2 release, dogfooding dc-release (Phase 15)
+
+**Files:**
+- Modify: `pyproject.toml`, `.claude-plugin/marketplace.json`, `plugins/dev-commander/.claude-plugin/plugin.json` (version 0.2.0)
+- Modify: `README.md` (status line), `CHANGELOG.md` (v0.2.0 section)
+
+**Interfaces:**
+- Consumes: everything above; follows dc-release's own /dc:release steps as the process.
+- Produces: tagged v0.2.0 on origin/main; installed plugin at 0.2.0.
+
+- [ ] **Step 1: Verify from a clean tree**
+
+Run: `git status --short` (expect empty) and `make verify`.
+Expected: clean tree; lint clean, all tests pass, verifier 0 problems.
+
+- [ ] **Step 2: Bump versions**
+
+Run: `python3 plugins/dev-commander/scripts/bump_version.py . 0.2.0`
+Expected: `updated pyproject.toml`.
+Then set `"version": "0.2.0"` in `.claude-plugin/marketplace.json` (plugins entry) and `plugins/dev-commander/.claude-plugin/plugin.json` — every statement of the version must agree.
+
+- [ ] **Step 3: Update docs**
+
+Add a `## v0.2.0` section at the top of CHANGELOG.md summarizing Phases 8-15. Set the README status line to: Phases 0-15 complete; v0.2 skill set shipped. Update the README command table with the new commands (/dc:release, /dc:design, /dc:adr, /dc:branch, /dc:pr, /dc:learn, /dc:promote-lesson).
+
+- [ ] **Step 4: Verify, validate, commit, tag, push**
+
+Run: `make verify && claude plugin validate . && claude plugin validate plugins/dev-commander`
+Expected: all clean.
+
+```bash
+git add -A
+git commit -m "chore: release v0.2.0"
+git tag v0.2.0
+git push --follow-tags
+```
+
+- [ ] **Step 5: Refresh the installed plugin and smoke-test**
+
+Run: `claude plugin uninstall dev-commander && claude plugin install dev-commander@dev-commander-marketplace`
+Then confirm the installed cache contains the four new skills and `bump_version.py`, and journal the release with the dc-core journal helper in a scratch workspace check.
+
+## v0.2 To Do
+
+Tracked in [TODO.md](../TODO.md).
+
+## v0.2 Completed
+
+(Empty. Move task names here with dates as they ship.)
