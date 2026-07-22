@@ -1,5 +1,15 @@
 # Changelog
 
+## workspace lifecycle integration test
+
+- test: added tests/test_lifecycle_integration.py, an end-to-end walk of a
+  temp workspace through init, design, plan, implement, review, handoff,
+  learn, and release using the real dc-core helper CLIs and the exact
+  artifact formats the Markdown skills produce. It locks in the cross-skill
+  contract that unit tests only cover in isolation, and would have caught
+  the v0.2.0 status.py handoff-count bug (verified: reintroducing that bug
+  fails the test). Not a release on its own; ships with the next version.
+
 ## v0.2.1
 
 Patch release: post-v0.2.0 fixes plus two follow-ups. Details in the

@@ -1631,7 +1631,8 @@ plugins/dev-commander/
     └── dc-learning/SKILL.md       # NEW (Task 17)
 
 tests/
-└── test_dc_release.py             # NEW (Task 11)
+├── test_dc_release.py             # NEW (Task 11)
+└── test_lifecycle_integration.py  # post-v0.2: end-to-end lifecycle contract
 ```
 
 Workspace layout after v0.2 (`.dev-commander/`): project.md plus `journal/`, `plans/`, `increments/`, `reviews/`, `debug/`, `design/`, `learning/`, `handoff/`.
