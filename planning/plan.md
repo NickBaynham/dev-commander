@@ -2624,3 +2624,673 @@ All eight tasks shipped 2026-07-21:
 - Task 16: dc-branch skill (7262781)
 - Task 17: dc-learning skill and learning workspace directory (87393f3, fix f605c12)
 - Task 18: v0.2 release, dogfooding dc-release (this commit, tagged v0.2.0)
+
+---
+
+# v0.3 Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Extend Dev Commander past release into continuous integration: a skill that generates a GitHub Actions PR gate (dc-ci) and a skill that runs dependency and secret scans on demand and reports (dc-secscan), keeping the skill-pack architecture and staying stack-agnostic.
+
+**Architecture:** Two Markdown-only skills (no Python helpers, per DC11). dc-secscan runs the stack's native dependency scanner plus gitleaks and writes a report to a new `.dev-commander/security/` directory; dc-ci writes a GitHub Actions workflow from a per-stack template family that runs the scaffold's uniform Make targets and the scan. Both skills detect the stack from project files. The lifecycle recommender gains one security check.
+
+**Tech Stack:** Unchanged — Claude Code plugin format, Python 3.12, pdm, pytest, ruff, Make. One new dev dependency: pyyaml (to validate generated workflow YAML in tests).
+
+**Design spec:** [docs/superpowers/specs/2026-07-22-v0.3-ci-security-design.md](../docs/superpowers/specs/2026-07-22-v0.3-ci-security-design.md).
+
+## v0.3 Global Constraints
+
+All v0.1 and v0.2 Global Constraints still apply verbatim. Additions:
+
+- dc-ci and dc-secscan are Markdown-only; the agent runs scanners and writes config by following each SKILL.md. No scanners or CI tools are vendored (DC11).
+- GitHub Actions is the only CI provider in v0.3 (DC12).
+- The generated workflow triggers on `push` and `pull_request`, runs `make install`, `make lint`, `make test`, `make build`, then the dependency and secret scans; lint/test/build/scan failures gate the build (DC13).
+- The Make targets a CI template names must all exist in that stack's scaffold `Makefile.tmpl`.
+- The `.dev-commander/` workspace grows to nine directories with `security/`, inserted before `handoff`.
+
+## v0.3 Decisions
+
+| # | Decision |
+| --- | --- |
+| DC11 | dc-ci and dc-secscan are Markdown-only, extending DC3. No scanners or CI tools are vendored; the agent runs the project's stack-native tools and writes config. |
+| DC12 | GitHub Actions is the only CI provider in v0.3. Other providers are deferred, structured as `templates/ci/<provider>/` if added. |
+| DC13 | Security gate: the build fails on known dependency vulnerabilities (high or critical where the scanner supports a severity threshold, e.g. `npm audit --audit-level=high`; pip-audit and govulncheck fail on any known vulnerability) and on any committed secret. SAST is deferred. |
+| DC14 | dc-secscan degrades gracefully when a scanner is absent: it reports the install command, continues with the available scanners, and records which ran. |
+
+## v0.3 File Structure (additions)
+
+```
+plugins/dev-commander/
+├── templates/
+│   ├── workspace/
+│   │   └── security/.gitkeep       # NEW (Task 19)
+│   └── ci/                         # NEW (Task 21)
+│       └── github/
+│           ├── python/ci.yml.tmpl
+│           ├── node-ts/ci.yml.tmpl
+│           └── go/ci.yml.tmpl
+└── skills/
+    ├── dc-secscan/SKILL.md         # NEW (Task 20)
+    └── dc-ci/SKILL.md              # NEW (Task 22)
+
+tests/
+└── test_dc_ci.py                   # NEW (Task 21)
+```
+
+Workspace layout after v0.3 (`.dev-commander/`): project.md plus `journal/`, `plans/`, `increments/`, `reviews/`, `debug/`, `design/`, `learning/`, `security/`, `handoff/`.
+
+---
+
+### Task 19: security/ workspace directory (Phase 16)
+
+**Files:**
+- Create: `plugins/dev-commander/templates/workspace/security/.gitkeep`
+- Modify: `plugins/dev-commander/scripts/status.py` (DIRS)
+- Modify: `tests/test_dc_core.py` (DIRS)
+- Modify: `tests/test_lifecycle_integration.py` (WORKSPACE_DIRS)
+
+**Interfaces:**
+- Consumes: the workspace contract from Task 3; `init_workspace.py` copies the template tree recursively, so adding the directory to the template is all init needs.
+- Produces: the `.dev-commander/security/` directory (holding `NNNN-<slug>.md` scan reports) that dc-secscan (Task 20) writes into and next_step (Task 23) reads.
+
+- [ ] **Step 1: Update the DIRS constant in the two test files (failing first)**
+
+In `tests/test_dc_core.py`, change the DIRS constant to:
+
+```python
+DIRS = [
+    "journal", "plans", "increments", "reviews", "debug",
+    "design", "learning", "security", "handoff",
+]
+```
+
+In `tests/test_lifecycle_integration.py`, change the WORKSPACE_DIRS constant to:
+
+```python
+WORKSPACE_DIRS = [
+    "journal", "plans", "increments", "reviews", "debug",
+    "design", "learning", "security", "handoff",
+]
+```
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+Run: `pdm run pytest tests/test_dc_core.py::test_init_creates_workspace tests/test_lifecycle_integration.py -v`
+Expected: FAIL — `security/` is asserted but the template does not create it yet.
+
+- [ ] **Step 3: Create the template directory and update status.py**
+
+Create `plugins/dev-commander/templates/workspace/security/.gitkeep` (empty file).
+
+In `plugins/dev-commander/scripts/status.py`, change the DIRS constant to:
+
+```python
+DIRS = [
+    "journal", "plans", "increments", "reviews", "debug",
+    "design", "learning", "security", "handoff",
+]
+```
+
+- [ ] **Step 4: Run tests to verify they pass**
+
+Run: `pdm run pytest tests/test_dc_core.py tests/test_lifecycle_integration.py -v && make verify`
+Expected: all pass; verifier clean.
+
+- [ ] **Step 5: Update the workspace layout in this plan**
+
+In the v0.1 and v0.2 workspace-layout listings, confirm `security/` appears between `learning/` and `handoff/`.
+
+- [ ] **Step 6: Commit**
+
+Update CHANGELOG.md (a Phase 16 section at the top) and TODO.md is unchanged (v0.3 was tracked as a single "Later" line, removed in Task 24). Commit:
+
+```bash
+git add -A
+git commit -m "feat: security/ workspace directory (Phase 16)"
+```
+
+---
+
+### Task 20: dc-secscan skill (Phase 17)
+
+**Files:**
+- Create: `plugins/dev-commander/skills/dc-secscan/SKILL.md`
+- Modify: `tests/test_dc_skills.py` (append the dc-secscan entry to EXPECTED)
+
+**Interfaces:**
+- Consumes: the `security/` directory from Task 19.
+- Produces: scan reports at `.dev-commander/security/NNNN-<slug>.md`; the canonical per-stack scan commands (`pip-audit`, `npm audit --audit-level=high`, `govulncheck ./...`, `gitleaks detect`) that the CI templates (Task 21) embed.
+
+- [ ] **Step 1: Add the dc-secscan case and verify it fails**
+
+Append to `EXPECTED` in `tests/test_dc_skills.py`:
+
+```python
+    "dc-secscan": ["/dc:scan", "security/", "gitleaks"],
+```
+
+Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-secscan]" -v`
+Expected: FAIL — missing SKILL.md.
+
+- [ ] **Step 2: Write dc-secscan SKILL.md**
+
+```markdown
+---
+name: dc-secscan
+description: Security scanning for Dev Commander. Use when the user runs /dc:scan or asks to check for vulnerable dependencies or committed secrets. Runs the project's stack-native dependency scanner and a secret scan, writes a report under .dev-commander/security/, and supplies the scan step dc-ci embeds in the pipeline.
+---
+
+# dc-secscan
+
+Runs security scans on demand and reports. It never fixes anything: it
+finds and recommends, and a dependency upgrade becomes a /dc:plan
+follow-up.
+
+## Stack detection
+
+Infer the stack from project files: `pyproject.toml` present means python,
+`package.json` means node-ts, `go.mod` means go. If none or more than one
+is present, ask the user which stack rather than guessing.
+
+## /dc:scan
+
+1. Detect the stack.
+2. Run the dependency scanner for the stack and the universal secret scan:
+   - python: `pip-audit` (against the installed environment or the
+     exported requirements).
+   - node-ts: `npm audit --audit-level=high`.
+   - go: `govulncheck ./...`.
+   - secrets, all stacks: `gitleaks detect` over the repository.
+3. If a scanner is not installed, report the install command (for example
+   `pip install pip-audit`,
+   `go install golang.org/x/vuln/cmd/govulncheck@latest`, or the gitleaks
+   release page) and continue with the scanners that are available. Never
+   crash on a missing tool.
+4. Write a report to `.dev-commander/security/NNNN-<slug>.md`, where NNNN is
+   the next zero-padded sequence number, with: the scanners that ran,
+   findings grouped by severity (the vulnerable package, or the file and
+   line for a secret, plus the advisory reference), and a verdict — clean,
+   or issues found.
+5. Severity and the gate: a high or critical dependency vulnerability, or
+   any committed secret, is a gating finding; lower-severity dependency
+   findings are informational. Scanners without a severity threshold
+   (pip-audit, govulncheck) report every known vulnerability; treat those
+   as gating.
+6. Never edit dependencies or code. Recommend the fix (a version bump, a
+   removed secret) and let the user decide, or open a /dc:plan for it.
+
+## The CI scan step
+
+dc-secscan is the single source of truth for how to scan each stack. The
+commands in step 2 are exactly what dc-ci embeds in the generated workflow,
+so local scans and the pipeline check the same things.
+```
+
+- [ ] **Step 3: Run tests to verify they pass**
+
+Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-secscan]" -v && make verify`
+Expected: pass; verifier clean.
+
+- [ ] **Step 4: Commit**
+
+Update CHANGELOG.md (Phase 17 section) in the same commit.
+
+```bash
+git add -A
+git commit -m "feat: dc-secscan skill (Phase 17)"
+```
+
+---
+
+### Task 21: CI template family and test_dc_ci.py (Phase 18)
+
+**Files:**
+- Create: `plugins/dev-commander/templates/ci/github/python/ci.yml.tmpl`
+- Create: `plugins/dev-commander/templates/ci/github/node-ts/ci.yml.tmpl`
+- Create: `plugins/dev-commander/templates/ci/github/go/ci.yml.tmpl`
+- Modify: `pyproject.toml` (add pyyaml to the dev dependency group)
+- Create: `tests/test_dc_ci.py`
+
+**Interfaces:**
+- Consumes: the scan commands documented by dc-secscan (Task 20); the scaffold `Makefile.tmpl` targets from Tasks 12-14.
+- Produces: the template family `templates/ci/github/<stack>/ci.yml.tmpl` that dc-ci (Task 22) reads. Each template substitutes only `{{project_name}}`.
+
+- [ ] **Step 1: Add pyyaml and write the failing tests**
+
+In `pyproject.toml`, change the dev dependency group to:
+
+```toml
+[dependency-groups]
+dev = [
+    "ruff>=0.6",
+    "pytest>=8.0",
+    "pyyaml>=6.0",
+]
+```
+
+Run `pdm install` so pyyaml is available and `pdm.lock` updates.
+
+Create `tests/test_dc_ci.py`:
+
+```python
+from pathlib import Path
+
+import pytest
+import yaml
+
+ROOT = Path(__file__).resolve().parent.parent
+CI = ROOT / "plugins" / "dev-commander" / "templates" / "ci" / "github"
+SCAFFOLD = ROOT / "plugins" / "dev-commander" / "templates" / "scaffold"
+STACKS = ["python", "node-ts", "go"]
+DEP_SCANNER = {"python": "pip-audit", "node-ts": "npm audit", "go": "govulncheck"}
+
+
+def _load(stack):
+    text = (CI / stack / "ci.yml.tmpl").read_text().replace("{{project_name}}", "demo-app")
+    return text, yaml.safe_load(text)
+
+
+@pytest.mark.parametrize("stack", STACKS)
+def test_ci_template_exists(stack):
+    assert (CI / stack / "ci.yml.tmpl").is_file(), f"missing {stack} CI template"
+
+
+@pytest.mark.parametrize("stack", STACKS)
+def test_ci_template_is_valid_yaml(stack):
+    _text, doc = _load(stack)
+    assert isinstance(doc, dict)
+
+
+@pytest.mark.parametrize("stack", STACKS)
+def test_ci_triggers_on_push_and_pull_request(stack):
+    _text, doc = _load(stack)
+    # PyYAML parses a bare `on:` key as the boolean True (YAML 1.1).
+    triggers = doc.get("on", doc.get(True))
+    assert "push" in triggers and "pull_request" in triggers
+
+
+@pytest.mark.parametrize("stack", STACKS)
+def test_ci_runs_uniform_make_targets(stack):
+    text, _doc = _load(stack)
+    for target in ["make install", "make lint", "make test", "make build"]:
+        assert target in text, f"{stack} CI missing '{target}'"
+
+
+@pytest.mark.parametrize("stack", STACKS)
+def test_ci_includes_dependency_and_secret_scanners(stack):
+    text, _doc = _load(stack)
+    assert DEP_SCANNER[stack] in text, f"{stack} CI missing {DEP_SCANNER[stack]}"
+    assert "gitleaks" in text, f"{stack} CI missing gitleaks"
+
+
+@pytest.mark.parametrize("stack", STACKS)
+def test_ci_make_targets_exist_in_scaffold(stack):
+    text, _doc = _load(stack)
+    makefile = (SCAFFOLD / stack / "Makefile.tmpl").read_text()
+    for target in ["install", "lint", "test", "build"]:
+        if f"make {target}" in text:
+            assert f"{target}:" in makefile, (
+                f"{stack} CI runs 'make {target}' but its Makefile.tmpl lacks it"
+            )
+```
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+Run: `pdm run pytest tests/test_dc_ci.py -v`
+Expected: FAIL — the CI templates do not exist.
+
+- [ ] **Step 3: Write the three CI templates**
+
+`plugins/dev-commander/templates/ci/github/python/ci.yml.tmpl`:
+
+```yaml
+name: {{project_name}} CI
+on: [push, pull_request]
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pdm
+      - run: make install
+      - run: make lint
+      - run: make test
+      - run: make build
+      - name: dependency scan
+        run: |
+          pip install pip-audit
+          pdm export -o requirements.txt --without-hashes
+          pip-audit -r requirements.txt
+      - name: secret scan
+        uses: gitleaks/gitleaks-action@v2
+```
+
+`plugins/dev-commander/templates/ci/github/node-ts/ci.yml.tmpl`:
+
+```yaml
+name: {{project_name}} CI
+on: [push, pull_request]
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: make install
+      - run: make lint
+      - run: make test
+      - run: make build
+      - name: dependency scan
+        run: npm audit --audit-level=high
+      - name: secret scan
+        uses: gitleaks/gitleaks-action@v2
+```
+
+`plugins/dev-commander/templates/ci/github/go/ci.yml.tmpl`:
+
+```yaml
+name: {{project_name}} CI
+on: [push, pull_request]
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+      - run: make install
+      - run: make lint
+      - run: make test
+      - run: make build
+      - name: dependency scan
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+      - name: secret scan
+        uses: gitleaks/gitleaks-action@v2
+```
+
+- [ ] **Step 4: Run tests to verify they pass**
+
+Run: `pdm run pytest tests/test_dc_ci.py -v && make verify`
+Expected: all 18 parametrized cases pass; verifier clean.
+
+- [ ] **Step 5: Commit**
+
+Update CHANGELOG.md (Phase 18 section) in the same commit. `pdm.lock` changed when pyyaml was added; include it.
+
+```bash
+git add -A
+git commit -m "feat: GitHub Actions CI template family and test_dc_ci (Phase 18)"
+```
+
+---
+
+### Task 22: dc-ci skill (Phase 19)
+
+**Files:**
+- Create: `plugins/dev-commander/skills/dc-ci/SKILL.md`
+- Modify: `tests/test_dc_skills.py` (append the dc-ci entry to EXPECTED)
+
+**Interfaces:**
+- Consumes: the CI template family from Task 21.
+- Produces: the `/dc:ci` command that writes `.github/workflows/ci.yml` into a project.
+
+- [ ] **Step 1: Add the dc-ci case and verify it fails**
+
+Append to `EXPECTED` in `tests/test_dc_skills.py`:
+
+```python
+    "dc-ci": ["/dc:ci", ".github/workflows", "ci.yml"],
+```
+
+Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-ci]" -v`
+Expected: FAIL — missing SKILL.md.
+
+- [ ] **Step 2: Write dc-ci SKILL.md**
+
+```markdown
+---
+name: dc-ci
+description: CI pipeline generation for Dev Commander. Use when the user runs /dc:ci or asks to set up continuous integration. Generates a GitHub Actions workflow that runs the scaffold's Make targets and a security scan on push and pull request.
+---
+
+# dc-ci
+
+Generates a GitHub Actions workflow that gates pull requests: it runs the
+project's uniform Make targets and the dc-secscan security scan. GitHub
+Actions is the only provider in v0.3.
+
+## Stack detection
+
+Infer the stack from project files: `pyproject.toml` means python,
+`package.json` means node-ts, `go.mod` means go. If none or more than one
+is present, ask the user which stack.
+
+## /dc:ci
+
+1. Detect the stack.
+2. Read `templates/ci/github/<stack>/ci.yml.tmpl` relative to this plugin's
+   root (resolve the path relative to this SKILL.md's own location, as
+   dc-core describes), substitute `{{project_name}}`, and write it to
+   `.github/workflows/ci.yml` in the project.
+3. Never overwrite an existing `.github/workflows/ci.yml`. If one exists,
+   report it and stop.
+4. The workflow triggers on push and pull request and runs, in order:
+   checkout, the stack's language setup, `make install`, `make lint`,
+   `make test`, `make build`, then the dc-secscan scan steps. lint, test,
+   and build must pass; the scan fails the build on a gating finding.
+5. Report the path written and recommend running /dc:scan locally to see
+   findings before relying on the gate.
+```
+
+- [ ] **Step 3: Run tests to verify they pass**
+
+Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-ci]" -v && make verify`
+Expected: pass; verifier clean.
+
+- [ ] **Step 4: Commit**
+
+Update CHANGELOG.md (Phase 19 section) in the same commit.
+
+```bash
+git add -A
+git commit -m "feat: dc-ci skill (Phase 19)"
+```
+
+---
+
+### Task 23: next_step /dc:scan recommendation (Phase 20)
+
+**Files:**
+- Modify: `plugins/dev-commander/scripts/next_step.py` (add the security check)
+- Modify: `tests/test_dc_core.py` (new /dc:scan test; fix the cycle-complete test)
+- Modify: `tests/test_lifecycle_integration.py` (add a security report before the cycle-complete assertion)
+- Modify: `planning/plan.md` (sync the Task 3 next_step.py mirror and the /dc:next SKILL block)
+
+**Interfaces:**
+- Consumes: the `security/` directory from Task 19.
+- Produces: a lifecycle state that recommends `/dc:scan` when the cycle is otherwise complete but no scan report exists.
+
+- [ ] **Step 1: Update the affected tests (failing first)**
+
+In `tests/test_dc_core.py`, the existing `test_next_recommends_release_when_cycle_complete` must first write a security report so it still reaches the cycle-complete state, and a new test covers the scan state. Replace `test_next_recommends_release_when_cycle_complete` with these two functions:
+
+```python
+def test_next_recommends_scan_when_no_security_report(tmp_path):
+    run("init_workspace.py", tmp_path)
+    ws = tmp_path / ".dev-commander"
+    _reviewed_plan(ws)
+    (ws / "handoff" / "0001-example").mkdir()
+    (ws / "handoff" / "0001-example" / "summary.md").write_text("# summary\n")
+    (ws / "learning" / "0001-lesson.md").write_text("Status: candidate\n")
+    result = run("next_step.py", tmp_path)
+    assert "/dc:scan" in result.stdout
+
+
+def test_next_recommends_release_when_cycle_complete(tmp_path):
+    run("init_workspace.py", tmp_path)
+    ws = tmp_path / ".dev-commander"
+    _reviewed_plan(ws)
+    (ws / "handoff" / "0001-example").mkdir()
+    (ws / "handoff" / "0001-example" / "summary.md").write_text("# summary\n")
+    (ws / "learning" / "0001-lesson.md").write_text("Status: candidate\n")
+    (ws / "security" / "0001-scan.md").write_text("verdict: clean\n")
+    result = run("next_step.py", tmp_path)
+    assert "Cycle complete" in result.stdout
+    assert "/dc:release" in result.stdout
+```
+
+In `tests/test_lifecycle_integration.py`, in `test_full_lifecycle`, insert a security-report step immediately before the final "journal" block (after the lesson is written and before the `journal.py` call). Replace the lesson-and-journal section:
+
+```python
+    # learn (dc-learning): a captured lesson leaves one hardening step.
+    (ws / "learning" / "0001-lesson.md").write_text("Status: candidate\n")
+    assert "/dc:scan" in run("next_step.py", tmp_path).stdout
+
+    # scan (dc-secscan): a security report completes the cycle.
+    (ws / "security" / "0001-scan.md").write_text("verdict: clean\n")
+    final = run("next_step.py", tmp_path)
+    assert "Cycle complete" in final.stdout
+    assert "/dc:release" in final.stdout
+
+    # journal (dc-core): an entry is written and counted.
+    assert run("journal.py", tmp_path, "Shipped the feature").returncode == 0
+    end = run("status.py", tmp_path)
+    assert "journal: 1" in end.stdout
+    assert "plans: 1" in end.stdout
+    assert "increments: 1" in end.stdout
+    # reviews counts both the code review and the plan-review file.
+    assert "reviews: 2" in end.stdout
+    assert "learning: 1" in end.stdout
+    assert "security: 1" in end.stdout
+```
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+Run: `pdm run pytest tests/test_dc_core.py::test_next_recommends_scan_when_no_security_report tests/test_lifecycle_integration.py -v`
+Expected: FAIL — next_step.py never recommends /dc:scan yet, so the scan-state assertions fail.
+
+- [ ] **Step 3: Add the security check to next_step.py**
+
+In `plugins/dev-commander/scripts/next_step.py`, replace the final learning check and terminal return:
+
+```python
+    if not list((ws / "learning").glob("*.md")):
+        return ("Handed off. Run /dc:learn to capture lessons from this cycle, "
+                "then /dc:release to cut a version.")
+    return ("Cycle complete. Run /dc:release to cut a version, or /dc:plan to "
+            "start the next feature.")
+```
+
+with:
+
+```python
+    if not list((ws / "learning").glob("*.md")):
+        return ("Handed off. Run /dc:learn to capture lessons from this cycle, "
+                "then /dc:release to cut a version.")
+    if not list((ws / "security").glob("*.md")):
+        return ("Lessons captured. Run /dc:scan for a security scan (and "
+                "/dc:ci to set up the CI pipeline) before cutting a release.")
+    return ("Cycle complete. Run /dc:release to cut a version, or /dc:plan to "
+            "start the next feature.")
+```
+
+- [ ] **Step 4: Run tests to verify they pass**
+
+Run: `pdm run pytest tests/test_dc_core.py tests/test_lifecycle_integration.py -v && make verify`
+Expected: all pass; verifier clean.
+
+- [ ] **Step 5: Sync the plan mirrors**
+
+In `planning/plan.md`, update the Task 3 `next_step.py` code block (Step 7) to include the new security check, and update the `/dc:next` description in the Task 3 SKILL.md block (Step 9) to mention the security state. Match the shipped code and SKILL.md exactly.
+
+- [ ] **Step 6: Commit**
+
+Update CHANGELOG.md (Phase 20 section) in the same commit.
+
+```bash
+git add -A
+git commit -m "feat: next_step recommends /dc:scan before release (Phase 20)"
+```
+
+---
+
+### Task 24: v0.3 docs and release (Phase 21)
+
+**Files:**
+- Modify: `README.md` (command table, status line)
+- Modify: `AGENTS.md` (identity prose, DC range)
+- Modify: `CHANGELOG.md` (v0.3.0 section)
+- Modify: `pyproject.toml`, `.claude-plugin/marketplace.json`, `plugins/dev-commander/.claude-plugin/plugin.json` (version 0.3.0)
+- Modify: `TODO.md` (remove the CI/CD line)
+
+**Interfaces:**
+- Consumes: everything above; follows dc-release's /dc:release process.
+- Produces: tagged v0.3.0 on origin; installed plugin at 0.3.0.
+
+- [ ] **Step 1: Update the README command table and status line**
+
+Add rows to the command table in `README.md`:
+
+```markdown
+| /dc:scan | dc-secscan | Run dependency and secret scans, report findings |
+| /dc:ci | dc-ci | Generate a GitHub Actions PR gate |
+```
+
+Set the README status line to: `Status: Phases 0-21 complete; v0.3.0 shipped.`
+
+- [ ] **Step 2: Update AGENTS.md identity prose**
+
+In `AGENTS.md`, extend the Project identity paragraph's skill enumeration to name the two new skills — "security scanning (dc-secscan)" and "CI pipeline generation (dc-ci)" — and change "Decisions (DC1-DC10)" to "Decisions (DC1-DC14)".
+
+- [ ] **Step 3: Update both manifest descriptions**
+
+In `.claude-plugin/marketplace.json` and `plugins/dev-commander/.claude-plugin/plugin.json`, extend the `description` to mention security scanning and CI pipeline generation.
+
+- [ ] **Step 4: Bump the version to 0.3.0**
+
+Run: `python3 plugins/dev-commander/scripts/bump_version.py . 0.3.0`
+Expected: `updated pyproject.toml`.
+Then set `"version": "0.3.0"` in `.claude-plugin/marketplace.json` (plugins entry) and `plugins/dev-commander/.claude-plugin/plugin.json`. Confirm all three agree.
+
+- [ ] **Step 5: Add the CHANGELOG v0.3.0 section and clear the TODO line**
+
+Add a `## v0.3.0` section at the top of `CHANGELOG.md` summarizing Phases 16-21. In `TODO.md`, remove the line `- CI/CD workflow generation and dependency/security scanning skills.`
+
+- [ ] **Step 6: Verify, commit, tag, push**
+
+Run: `make verify && claude plugin validate . && claude plugin validate plugins/dev-commander`
+Expected: all clean.
+
+```bash
+git add -A
+git commit -m "chore: release v0.3.0"
+git tag -a v0.3.0 -m "release v0.3.0"
+git push origin main
+git push origin v0.3.0
+```
+
+- [ ] **Step 7: Refresh and confirm the installed plugin**
+
+Run: `claude plugin uninstall dev-commander && claude plugin install dev-commander@dev-commander-marketplace`
+Then confirm the installed cache carries dc-secscan, dc-ci, and the `templates/ci/github/` family, and that the active install path is 0.3.0.
+
+- [ ] **Step 8: Check off this plan's checkboxes and record completion**
+
+In `planning/plan.md`, check off the v0.3 task checkboxes and add a `## v0.3 Completed` section listing Tasks 19-24 with their commit SHAs and today's date. Commit as `docs: v0.3 completion record`.
+
+## v0.3 To Do
+
+Tracked in [TODO.md](../TODO.md). Deferred beyond v0.3: continuous deployment to environments, publishing build artifacts on a release tag, CI providers other than GitHub Actions, and SAST (bandit, gosec, semgrep).
+
+## v0.3 Completed
+
+(Empty. Move task names here with dates as they ship.)
