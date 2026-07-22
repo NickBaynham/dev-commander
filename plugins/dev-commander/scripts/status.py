@@ -4,7 +4,7 @@ from pathlib import Path
 
 DIRS = [
     "journal", "plans", "increments", "reviews", "debug",
-    "design", "learning", "handoff",
+    "design", "learning", "security", "handoff",
 ]
 
 

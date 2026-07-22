@@ -1,5 +1,13 @@
 # Changelog
 
+## Phase 16: security/ workspace directory
+
+- feat: added `security/` workspace directory to `.dev-commander/` between
+  `learning/` and `handoff/`, created by /dc:init, and updated DIRS constants
+  in status.py and test files to match. This directory will hold security
+  scan reports (NNNN-<slug>.md) produced by dc-secscan (Phase 17) and read
+  by next_step to recommend remediation workflow.
+
 ## quick-win hardening
 
 - test: the no-emoji check now sweeps the Makefile, both manifests, every
