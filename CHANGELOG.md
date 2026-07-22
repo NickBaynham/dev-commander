@@ -1,5 +1,36 @@
 # Changelog
 
+## v0.2.0 — General software development agent
+
+Generalizes Dev Commander from a Python-only inner loop into a general
+software development agent: a release workflow, multi-stack scaffolding,
+an architecture/design phase, a branch-and-PR workflow, and governed
+lesson capture. Ships Phases 8-15 (Tasks 11-18).
+
+- dc-release (Phase 8): /dc:release command and bump_version.py helper
+  synchronize the version across manifests, update CHANGELOG.md, verify,
+  commit, and tag.
+- Multi-stack scaffolding (Phases 9-11): templates reorganized into
+  common/ (stack-agnostic docs) plus python/, node-ts/, and go/ stack
+  families under templates/scaffold/. Every family's Makefile provides
+  install, lint, test, build, run; a fresh scaffold of any stack passes
+  its own health check with zero manual editing.
+- dc-design (Phase 12): /dc:design and /dc:adr commands produce design
+  docs and architecture decision records under .dev-commander/design/
+  as optional input to /dc:plan.
+- dc-branch (Phase 13): /dc:branch and /dc:pr commands prepare feature
+  branches (`dc/NNNN-<slug>`) and draft pull request descriptions from
+  plan, increment, and review artifacts; never pushes or merges without
+  explicit user direction.
+- dc-learning (Phase 14): /dc:learn and /dc:promote-lesson commands
+  capture candidate lessons under .dev-commander/learning/ and promote
+  them into project guidance only with human approval.
+- Workspace contract grown to nine parts: project.md plus journal/,
+  plans/, increments/, reviews/, debug/, design/, learning/, handoff/.
+- This release (Phase 15) dogfoods dc-release: version bumped to 0.2.0
+  across pyproject.toml and both plugin manifests, README command table
+  and status line updated, tagged v0.2.0.
+
 ## Phase 14 — dc-learning skill and learning workspace directory
 
 - dc-learning skill: /dc:learn and /dc:promote-lesson commands for governed lesson capture.

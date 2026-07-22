@@ -2479,22 +2479,22 @@ git commit -m "feat: dc-learning skill and learning workspace directory (Phase 1
 - Consumes: everything above; follows dc-release's own /dc:release steps as the process.
 - Produces: tagged v0.2.0 on origin/main; installed plugin at 0.2.0.
 
-- [ ] **Step 1: Verify from a clean tree**
+- [x] **Step 1: Verify from a clean tree**
 
 Run: `git status --short` (expect empty) and `make verify`.
 Expected: clean tree; lint clean, all tests pass, verifier 0 problems.
 
-- [ ] **Step 2: Bump versions**
+- [x] **Step 2: Bump versions**
 
 Run: `python3 plugins/dev-commander/scripts/bump_version.py . 0.2.0`
 Expected: `updated pyproject.toml`.
 Then set `"version": "0.2.0"` in `.claude-plugin/marketplace.json` (plugins entry) and `plugins/dev-commander/.claude-plugin/plugin.json` — every statement of the version must agree.
 
-- [ ] **Step 3: Update docs**
+- [x] **Step 3: Update docs**
 
 Add a `## v0.2.0` section at the top of CHANGELOG.md summarizing Phases 8-15. Set the README status line to: Phases 0-15 complete; v0.2 skill set shipped. Update the README command table with the new commands (/dc:release, /dc:design, /dc:adr, /dc:branch, /dc:pr, /dc:learn, /dc:promote-lesson).
 
-- [ ] **Step 4: Verify, validate, commit, tag, push**
+- [x] **Step 4: Verify, validate, commit, tag, push**
 
 Run: `make verify && claude plugin validate . && claude plugin validate plugins/dev-commander`
 Expected: all clean.
@@ -2506,7 +2506,7 @@ git tag v0.2.0
 git push --follow-tags
 ```
 
-- [ ] **Step 5: Refresh the installed plugin and smoke-test**
+- [x] **Step 5: Refresh the installed plugin and smoke-test**
 
 Run: `claude plugin uninstall dev-commander && claude plugin install dev-commander@dev-commander-marketplace`
 Then confirm the installed cache contains the four new skills and `bump_version.py`, and journal the release with the dc-core journal helper in a scratch workspace check.
@@ -2517,4 +2517,13 @@ Tracked in [TODO.md](../TODO.md).
 
 ## v0.2 Completed
 
-(Empty. Move task names here with dates as they ship.)
+All eight tasks shipped 2026-07-21:
+
+- Task 11: dc-release skill and bump_version helper (3f69247)
+- Task 12: Multi-stack scaffold restructure — common + python families (5a91fc8)
+- Task 13: node-ts scaffold family (d366fb4, fix b8ba475, fix ede2975)
+- Task 14: go scaffold family (6e55b73)
+- Task 15: dc-design skill and design workspace directory (9fda61f)
+- Task 16: dc-branch skill (7262781)
+- Task 17: dc-learning skill and learning workspace directory (87393f3, fix f605c12)
+- Task 18: v0.2 release, dogfooding dc-release (this commit, tagged v0.2.0)

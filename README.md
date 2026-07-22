@@ -5,7 +5,7 @@ Dev Commander guides a project through scaffold, plan, implement, review,
 debug, and handoff to [Test Commander](https://github.com/NickBaynham/test-commander)
 via a `/dc:*` command family.
 
-Status: Phases 0-7 complete; v0.1 skill set shipped.
+Status: Phases 0-15 complete; v0.2 skill set shipped.
 
 ## Install
 
@@ -26,6 +26,13 @@ Status: Phases 0-7 complete; v0.1 skill set shipped.
 | /dc:review | dc-review | Rubric-driven code review of an increment or diff |
 | /dc:debug | dc-debug | Root-cause-first debugging workflow |
 | /dc:handoff-to-tc | dc-handoff | Package artifacts for Test Commander ingestion |
+| /dc:release | dc-release | Bump version, update CHANGELOG, verify, commit, and tag a release |
+| /dc:design | dc-design | Produce a design doc for a feature before planning |
+| /dc:adr | dc-design | Record an architecture decision |
+| /dc:branch | dc-branch | Create and switch to a feature branch for a plan |
+| /dc:pr | dc-branch | Draft a pull request description from workspace artifacts |
+| /dc:learn | dc-learning | Capture a candidate lesson from a debug session, review, or release |
+| /dc:promote-lesson | dc-learning | Promote a candidate lesson into project guidance with approval |
 
 ## Development
 
