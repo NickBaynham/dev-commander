@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.3.1
+
+Patch release from the v0.3.0 whole-branch review: the generated CI gate is
+now usable as shipped.
+
+- fix: the gitleaks secret-scan step in all three CI templates now sets
+  `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}` (with a GITLEAKS_LICENSE note
+  for organizations), so the step runs instead of failing on the first CI
+  run in a consuming project.
+- test: test_dc_ci guards against unsubstituted `{{project...}}` placeholders
+  in the templates (ignoring GitHub's legitimate `${{ }}` expression syntax).
+- docs: dc-ci stack detection now matches dc-secscan verbatim; the design
+  spec's DC13 records that python and go gate more strictly than the
+  high/critical floor.
+
 ## v0.3.0 — CI and security scanning
 
 Extends Dev Commander past release into continuous integration: on-demand
