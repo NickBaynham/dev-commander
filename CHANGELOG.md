@@ -1,5 +1,17 @@
 # Changelog
 
+## Phase 19: dc-ci skill
+
+- feat: dc-ci skill ships CI pipeline generation for Dev Commander. /dc:ci
+  detects the project stack from project files (pyproject.toml for python,
+  package.json for node-ts, go.mod for go), reads the matching GitHub Actions
+  template from templates/ci/github/<stack>/ci.yml.tmpl, substitutes
+  {{project_name}}, and writes it to .github/workflows/ci.yml. Never overwrites
+  an existing workflow. The template runs the uniform Make targets (install,
+  lint, test, build) and the dc-secscan security scan on push and pull request;
+  lint, test, build, and the scan must pass. GitHub Actions is the only provider
+  in v0.3. Stack detection asks the user when none or multiple stacks are present.
+
 ## Phase 18: CI template family
 
 - feat: GitHub Actions CI template family for python, node-ts, and go stacks.
