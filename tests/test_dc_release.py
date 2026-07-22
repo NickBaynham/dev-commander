@@ -37,3 +37,29 @@ def test_rejects_non_semver(tmp_path):
 def test_fails_when_no_version_files(tmp_path):
     result = run(tmp_path, "0.2.0")
     assert result.returncode == 1
+
+
+def test_bumps_project_section_not_first_version_line(tmp_path):
+    (tmp_path / "pyproject.toml").write_text(
+        '[tool.other]\nversion = "9.9.9"\n\n[project]\nname = "x"\nversion = "0.1.0"\n'
+    )
+    result = run(tmp_path, "0.2.0")
+    assert result.returncode == 0, result.stderr
+    text = (tmp_path / "pyproject.toml").read_text()
+    assert '[tool.other]\nversion = "9.9.9"' in text
+    assert 'version = "0.2.0"' in text
+
+
+def test_reports_missing_project_version_field(tmp_path):
+    (tmp_path / "pyproject.toml").write_text('[project]\nname = "x"\n')
+    result = run(tmp_path, "0.2.0")
+    assert result.returncode == 1
+    assert "no project version field" in result.stdout
+
+
+def test_invalid_package_json_fails_cleanly(tmp_path):
+    (tmp_path / "package.json").write_text("{not json")
+    result = run(tmp_path, "0.2.0")
+    assert result.returncode == 1
+    assert "not valid JSON" in result.stdout
+    assert "Traceback" not in result.stderr
