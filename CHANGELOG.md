@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.2.1
+
+Patch release: post-v0.2.0 fixes plus two follow-ups. Details in the
+sections below.
+
+- fix: node-ts scaffold build and run targets (dedicated tsconfig.build.json).
+- fix: bump_version anchors to the [project] section and fails loudly on
+  missing fields or malformed package.json.
+- docs: v0.2 identity coherence across AGENTS.md, both manifests, and README.
+- feat: /dc:next walks the full v0.2 lifecycle (design, branch, pr, learn,
+  release), not just the v0.1 plan/implement/review/handoff chain.
+- docs: scaffold health check covers `make lint test build` and the run
+  entrypoint, not just `make lint test`.
+
 ## scaffold health check covers build and run
 
 - docs: the scaffold health check now proves `make lint test build`, not
