@@ -2029,7 +2029,7 @@ run:
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "lib": ["ES2022", "DOM"],
+    "lib": ["ES2022", "WebWorker"],
     "types": ["node", "vitest/globals"],
     "outDir": "dist",
     "strict": true
