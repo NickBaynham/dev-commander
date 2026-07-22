@@ -26,9 +26,14 @@ Generates project scaffolding from templates bundled at
    docker locally. When skipping docker-compose.yml, also remove any
    `docker compose up -d` line from the generated Makefile's run
    target so `make run` still works.
-5. After writing, run the stack's install target and `make lint test`
-   to prove the scaffold is healthy, then journal the scaffold
-   decision with the dc-core journal helper.
+5. Prove the scaffold is healthy before journaling: run the stack's
+   install target, then `make lint test build` with zero manual
+   editing. Where the build produces a run entrypoint (for example
+   node-ts's `dist/index.js` or go's `bin/<name>`), confirm the run
+   target points at it — run `make run` when it self-terminates, or
+   run the built entrypoint directly when `make run` would block on a
+   server or start external services (`docker compose up`). Then
+   journal the scaffold decision with the dc-core journal helper.
 
 Rules the generated project must satisfy regardless of stack: Make
 targets for install, lint, test, build, run; no emojis anywhere;

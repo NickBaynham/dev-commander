@@ -1578,7 +1578,7 @@ All ten tasks shipped 2026-07-21:
 All v0.1 Global Constraints still apply verbatim. Additions:
 
 - Every stack family's Makefile must provide install, lint, test, build, run targets; the conventions (CHANGELOG/TODO/README, no emojis) are universal across stacks.
-- A fresh scaffold of ANY stack must pass its own health check (`make lint test`) with zero manual editing.
+- A fresh scaffold of ANY stack must pass its own health check with zero manual editing: `make lint test build`. Where the build produces a run entrypoint (node-ts, go), the run target must point at it; `make run` itself need not be executed in the check when it would block on a server or start external services (`docker compose up`).
 - New workspace directories keep the established artifact conventions: `NNNN-<slug>.md` with NNNN the next zero-padded sequence number.
 - The EXPECTED dict in tests/test_dc_skills.py and the STACKS dict in tests/test_dc_scaffold.py grow one entry per task, keeping `make verify` green between tasks.
 
@@ -1989,9 +1989,14 @@ Generates project scaffolding from templates bundled at
    docker locally. When skipping docker-compose.yml, also remove any
    `docker compose up -d` line from the generated Makefile's run
    target so `make run` still works.
-5. After writing, run the stack's install target and `make lint test`
-   to prove the scaffold is healthy, then journal the scaffold
-   decision with the dc-core journal helper.
+5. Prove the scaffold is healthy before journaling: run the stack's
+   install target, then `make lint test build` with zero manual
+   editing. Where the build produces a run entrypoint (for example
+   node-ts's `dist/index.js` or go's `bin/<name>`), confirm the run
+   target points at it — run `make run` when it self-terminates, or
+   run the built entrypoint directly when `make run` would block on a
+   server or start external services (`docker compose up`). Then
+   journal the scaffold decision with the dc-core journal helper.
 
 Rules the generated project must satisfy regardless of stack: Make
 targets for install, lint, test, build, run; no emojis anywhere;
@@ -2031,7 +2036,7 @@ git commit -m "feat: multi-stack scaffold layout with common and python families
 
 **Interfaces:**
 - Consumes: the family layout and STACKS dict from Task 12.
-- Produces: a complete node-ts family whose fresh scaffold passes `npm install && make lint test`.
+- Produces: a complete node-ts family whose fresh scaffold passes `npm install && make lint test build` and whose built `dist/index.js` runs.
 
 - [x] **Step 1: Add the node-ts case and verify it fails**
 
@@ -2150,8 +2155,8 @@ Expected: all pass (node-ts parametrized cases included); verifier clean.
 
 - [x] **Step 4: Prove a fresh node-ts scaffold is healthy**
 
-In a scratch directory, copy the common and node-ts templates with `.tmpl` stripped (substituting `demo-app` for `{{project_name}}`), then run `npm install && make lint test`.
-Expected: lint (tsc) clean, 1 vitest test passes. Remove the scratch directory afterwards. If npm is unavailable in the environment, record that in the commit message body instead and note it for the reviewer.
+In a scratch directory, copy the common and node-ts templates with `.tmpl` stripped (substituting `demo-app` for `{{project_name}}`), then run `npm install && make lint test build` and `node dist/index.js`.
+Expected: lint (tsc) clean, 1 vitest test passes, `make build` emits `dist/index.js` (and no `dist/tests/`), and `node dist/index.js` loads and exits cleanly. Remove the scratch directory afterwards. If npm is unavailable in the environment, record that in the commit message body instead and note it for the reviewer.
 
 - [x] **Step 5: Commit**
 
@@ -2175,7 +2180,7 @@ git commit -m "feat: node-ts scaffold family (Phase 10)"
 
 **Interfaces:**
 - Consumes: the family layout and STACKS dict from Task 12.
-- Produces: a complete go family whose fresh scaffold passes `make lint test`.
+- Produces: a complete go family whose fresh scaffold passes `make lint test build run`.
 
 - [x] **Step 1: Add the go case and verify it fails**
 
@@ -2265,8 +2270,8 @@ Expected: all pass (go parametrized cases included); verifier clean.
 
 - [x] **Step 4: Prove a fresh go scaffold is healthy**
 
-In a scratch directory, copy the common and go templates with `.tmpl` stripped (substituting `demo-app` for `{{project_name}}`), then run `make lint test`.
-Expected: go vet clean, 1 test passes. Remove the scratch directory afterwards. If the go toolchain is unavailable in the environment, record that in the commit message body instead and note it for the reviewer.
+In a scratch directory, copy the common and go templates with `.tmpl` stripped (substituting `demo-app` for `{{project_name}}`), then run `make lint test build run` (all self-terminating for go).
+Expected: go vet clean, 1 test passes, `make build` produces `bin/demo-app`, and `make run` prints the greeting. Remove the scratch directory afterwards. If the go toolchain is unavailable in the environment, record that in the commit message body instead and note it for the reviewer.
 
 - [x] **Step 5: Commit**
 

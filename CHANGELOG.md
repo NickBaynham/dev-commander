@@ -1,5 +1,18 @@
 # Changelog
 
+## scaffold health check covers build and run
+
+- docs: the scaffold health check now proves `make lint test build`, not
+  just `make lint test`, and exercises the run entrypoint the build
+  produces. `make build` is the target that validates compilation and
+  emits the run entrypoint, so lint+test alone missed the node-ts breakage
+  the v0.2.0 whole-branch review caught (build emitted `dist/src/index.js`
+  while `npm start` pointed at `dist/index.js`). `make run` itself is not
+  executed in the check when it would block on a server or start external
+  services (`docker compose up`); the built entrypoint is run directly
+  instead. Updated dc-scaffold SKILL.md, the v0.2 health-check constraint,
+  and the node-ts and go family proof steps.
+
 ## next_step lifecycle recommender
 
 - feat: /dc:next now walks the full v0.2 lifecycle. The recommender was a
