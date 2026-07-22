@@ -1,5 +1,35 @@
 # Changelog
 
+## v0.3.0 — CI and security scanning
+
+Extends Dev Commander past release into continuous integration: on-demand
+dependency and secret scanning, and generated GitHub Actions CI pipelines.
+Ships Phases 16-21 (Tasks 19-24).
+
+- security/ workspace directory (Phase 16): a ninth `.dev-commander/`
+  subdirectory, inserted between `learning/` and `handoff/`, holds security
+  scan reports.
+- dc-secscan (Phase 17): /dc:scan detects the project stack and runs the
+  stack-native dependency scanner (pip-audit, npm audit --audit-level=high,
+  or govulncheck) plus gitleaks for secrets, writing a severity-grouped
+  report to `.dev-commander/security/`. Missing tools are reported, never
+  fatal.
+- GitHub Actions CI template family (Phase 18): one template per stack
+  (`templates/ci/github/<stack>/ci.yml.tmpl`) runs the uniform Make targets
+  (install, lint, test, build), the stack-native dependency scanner, and
+  gitleaks for secrets.
+- dc-ci (Phase 19): /dc:ci detects the project stack, substitutes
+  `{{project_name}}` into the matching template, and writes
+  `.github/workflows/ci.yml`. Never overwrites an existing workflow.
+  GitHub Actions is the only provider in v0.3.
+- next_step security state (Phase 20): /dc:next now recommends /dc:scan
+  before /dc:release when the cycle is otherwise complete but no security
+  scan report exists, making a scan mandatory before cutting a version.
+- v0.3 docs and release (Phase 21): version bumped to 0.3.0 across
+  pyproject.toml and both plugin manifests, README command table and
+  status line updated, AGENTS.md identity prose and Decisions range
+  updated, tagged v0.3.0.
+
 ## Phase 20: next_step security state
 
 - feat: /dc:next now recommends /dc:scan before /dc:release when the cycle

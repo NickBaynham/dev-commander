@@ -5,7 +5,7 @@ Dev Commander guides a project through scaffold, plan, implement, review,
 debug, and handoff to [Test Commander](https://github.com/NickBaynham/test-commander)
 via a `/dc:*` command family.
 
-Status: Phases 0-15 complete; v0.2.1 shipped.
+Status: Phases 0-21 complete; v0.3.0 shipped.
 
 ## Install
 
@@ -33,6 +33,8 @@ Status: Phases 0-15 complete; v0.2.1 shipped.
 | /dc:pr | dc-branch | Draft a pull request description from workspace artifacts |
 | /dc:learn | dc-learning | Capture a candidate lesson from a debug session, review, or release |
 | /dc:promote-lesson | dc-learning | Promote a candidate lesson into project guidance with approval |
+| /dc:scan | dc-secscan | Run dependency and secret scans, report findings |
+| /dc:ci | dc-ci | Generate a GitHub Actions PR gate |
 
 ## Development
 
