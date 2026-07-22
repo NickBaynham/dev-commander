@@ -2014,6 +2014,7 @@ run:
     "start": "node dist/index.js"
   },
   "devDependencies": {
+    "@types/node": "^22.0.0",
     "typescript": "^5.6.0",
     "vitest": "^2.1.0"
   }
@@ -2028,6 +2029,8 @@ run:
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "lib": ["ES2022", "DOM"],
+    "types": ["node", "vitest/globals"],
     "outDir": "dist",
     "strict": true
   },
