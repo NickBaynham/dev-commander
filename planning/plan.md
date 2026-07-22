@@ -2824,9 +2824,11 @@ is present, ask the user which stack rather than guessing.
 
 ## The CI scan step
 
-dc-secscan is the single source of truth for how to scan each stack. The
-commands in step 2 are exactly what dc-ci embeds in the generated workflow,
-so local scans and the pipeline check the same things.
+dc-secscan is the single source of truth for how to scan each stack. dc-ci
+embeds the dependency-scan commands from step 2 verbatim; for secret
+scanning it runs the official gitleaks GitHub Action, the same gitleaks
+engine as the local `gitleaks detect`. Local scans and the pipeline check
+the same things.
 ```
 
 - [ ] **Step 3: Run tests to verify they pass**
