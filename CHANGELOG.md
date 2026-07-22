@@ -1,5 +1,18 @@
 # Changelog
 
+## Phase 18: CI template family
+
+- feat: GitHub Actions CI template family for python, node-ts, and go stacks.
+  Each template (templates/ci/github/<stack>/ci.yml.tmpl) runs the uniform Make
+  targets (install, lint, test, build) across all stacks, integrates the
+  stack-native dependency scanners documented by dc-secscan (pip-audit,
+  npm audit, govulncheck), and includes gitleaks for secret detection. The
+  templates use 2-space YAML indentation and substitute only {{project_name}}.
+- test: added tests/test_dc_ci.py with 18 parametrized test cases verifying
+  template existence, YAML validity, trigger configuration, uniform Make
+  target presence, scanner integration, and scaffold Makefile compatibility.
+  Added pyyaml>=6.0 as a dev dependency to enable YAML parsing in tests.
+
 ## Phase 17: dc-secscan skill
 
 - feat: dc-secscan skill ships security scanning for Dev Commander. /dc:scan

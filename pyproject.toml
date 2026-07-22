@@ -25,6 +25,7 @@ distribution = false
 dev = [
     "ruff>=0.6",
     "pytest>=8.0",
+    "pyyaml>=6.0",
 ]
 
 [tool.ruff]
