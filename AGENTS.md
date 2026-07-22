@@ -6,7 +6,7 @@ If you are the parent project's global agent and have already loaded `~/projects
 
 ## Project identity
 
-Dev Commander is an AI-assisted software development agent, shipped as a Claude Code plugin. It provides a `/dc:*` command family that guides a project through the development lifecycle: workspace orchestration (dc-core), project scaffolding (dc-scaffold), small-increment planning (dc-plan), test-first implementation (dc-implement), rubric-driven review (dc-review), root-cause debugging (dc-debug), and handoff to Test Commander (dc-handoff). It is the development-side counterpart to [Test Commander](https://github.com/NickBaynham/test-commander) and deliberately mirrors its architecture.
+Dev Commander is an AI-assisted software development agent, shipped as a Claude Code plugin. It provides a `/dc:*` command family that guides a project through the development lifecycle: workspace orchestration (dc-core), multi-stack project scaffolding for python, node-ts, and go (dc-scaffold), architecture design and ADRs (dc-design), small-increment planning (dc-plan), test-first implementation (dc-implement), rubric-driven review (dc-review), root-cause debugging (dc-debug), branch and PR workflow (dc-branch), release management (dc-release), governed lesson capture (dc-learning), and handoff to Test Commander (dc-handoff). It is the development-side counterpart to [Test Commander](https://github.com/NickBaynham/test-commander) and deliberately mirrors its architecture.
 
 ## Source of truth
 

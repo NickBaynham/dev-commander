@@ -9,8 +9,8 @@ help:
 	@echo "  make uninstall   Remove the plugin and unregister the marketplace."
 	@echo "  make lint        Run the ruff linter."
 	@echo "  make test        Run pytest."
-	@echo "  make build       Placeholder; no build artifacts in v0.1."
-	@echo "  make run         Placeholder; no runtime in v0.1."
+	@echo "  make build       Placeholder; no build artifacts."
+	@echo "  make run         Placeholder; no runtime."
 	@echo "  make verify      Run lint, test, and the skill verifier."
 
 install: pdm-install validate-manifests marketplace-add plugin-install
@@ -47,10 +47,10 @@ test:
 	pdm run pytest
 
 build:
-	@echo "No build artifacts in v0.1."
+	@echo "No build artifacts."
 
 run:
-	@echo "No runtime in v0.1."
+	@echo "No runtime."
 
 verify: lint test
 	pdm run python scripts/verify_skills.py

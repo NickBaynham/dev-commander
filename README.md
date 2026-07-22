@@ -19,7 +19,7 @@ Status: Phases 0-15 complete; v0.2 skill set shipped.
 | /dc:status | dc-core | Summarize workspace state |
 | /dc:journal | dc-core | Append a decision-journal entry |
 | /dc:next | dc-core | Recommend the next command |
-| /dc:scaffold | dc-scaffold | Generate project scaffolding (pdm, Make, docker compose) |
+| /dc:scaffold | dc-scaffold | Generate project scaffolding (python, node-ts, or go stack) |
 | /dc:plan | dc-plan | Produce a small-increment implementation plan |
 | /dc:review-plan | dc-plan | Review a plan against the increment rubric |
 | /dc:implement | dc-implement | Execute the next plan increment test-first |

@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.2.0 release fixes
+
+Whole-branch review of the v0.2.0 release surfaced three defects, fixed
+here without changing the shipped version number.
+
+- fix: node-ts scaffold build and run targets. `tsc` under the default
+  tsconfig emitted `dist/src/index.js`, but `npm start` pointed at
+  `dist/index.js`, so `make run` failed after a clean `make build`.
+  Added `tsconfig.build.json.tmpl` (rootDir src, include src only) and
+  pointed the build script at it so `make build && make run` works
+  end to end.
+- fix: bump_version.py anchors its pyproject.toml substitution to the
+  `[project]` section instead of the first `version = "..."` line in
+  the file, so a version line in an earlier table (e.g.
+  `[tool.commitizen]`) is no longer bumped by mistake. Also reports a
+  precise "no project version field" / "no version field" message
+  instead of the generic "no version files found" when a file exists
+  but lacks the field, and reports "package.json is not valid JSON"
+  on a malformed file instead of crashing with a raw traceback.
+- docs: v0.2 identity coherence. AGENTS.md, the plugin manifests, and
+  README now name all eleven shipped skills; TODO.md's "planned" v0.2
+  section (already shipped) is removed; dc-release's SKILL.md now
+  tags releases with an annotated `git tag -a` and step 5 asks the
+  releaser to confirm the project's identity prose names everything
+  the release ships, so this class of drift is caught going forward.
+
 ## v0.2.0 — General software development agent
 
 Generalizes Dev Commander from a Python-only inner loop into a general

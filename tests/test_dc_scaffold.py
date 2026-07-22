@@ -42,7 +42,7 @@ def test_stack_makefile_has_required_targets(stack):
 
 
 def test_scaffold_root_has_only_family_dirs():
-    entries = {p.name for p in SCAFFOLD.iterdir()}
+    entries = {p.name for p in SCAFFOLD.iterdir() if p.is_dir()}
     assert entries == {"common"} | set(STACKS)
 
 

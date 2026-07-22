@@ -29,8 +29,13 @@ described in dc-core.
    statement of the version in the repo must agree.
 4. Add a `## v<version>` section at the top of CHANGELOG.md
    summarizing what shipped since the previous release.
-5. Update the README status line if it names a version.
+5. Update the README status line if it names a version. Confirm the
+   project's identity prose (agent orientation file and any plugin or
+   package manifests) names everything this release ships.
 6. Re-run the verify command, then commit as
-   `chore: release v<version>` and tag `v<version>`.
+   `chore: release v<version>` and create an annotated tag:
+   `git tag -a v<version> -m "release v<version>"`. Note that
+   `git push --follow-tags` only pushes annotated tags; push the tag
+   explicitly if in doubt.
 7. Ask before pushing; pushing the commit and tag is the user's call.
 8. Journal the release with the dc-core journal helper.

@@ -1,6 +1,6 @@
 ---
 name: dc-scaffold
-description: Project scaffolding for Dev Commander. Use when the user runs /dc:scaffold or asks to set up a new project. Offers stack families (python, node-ts, go) with a shared documentation set, generating a Makefile with install, lint, test, build, and run targets plus README, CHANGELOG, and TODO from bundled templates.
+description: Project scaffolding for Dev Commander. Use when the user runs /dc:scaffold or asks to set up a new project. Offers stack families (e.g. python, node-ts, go) with a shared documentation set, generating a Makefile with install, lint, test, build, and run targets plus README, CHANGELOG, and TODO from bundled templates.
 ---
 
 # dc-scaffold

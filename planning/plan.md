@@ -213,8 +213,8 @@ help:
 	@echo "  make uninstall   Remove the plugin and unregister the marketplace."
 	@echo "  make lint        Run the ruff linter."
 	@echo "  make test        Run pytest."
-	@echo "  make build       Placeholder; no build artifacts in v0.1."
-	@echo "  make run         Placeholder; no runtime in v0.1."
+	@echo "  make build       Placeholder; no build artifacts."
+	@echo "  make run         Placeholder; no runtime."
 	@echo "  make verify      Run lint, test, and the skill verifier."
 
 install: pdm-install validate-manifests marketplace-add plugin-install
@@ -251,10 +251,10 @@ test:
 	pdm run pytest
 
 build:
-	@echo "No build artifacts in v0.1."
+	@echo "No build artifacts."
 
 run:
-	@echo "No runtime in v0.1."
+	@echo "No runtime."
 
 verify: lint test
 	pdm run python scripts/verify_skills.py
@@ -1821,9 +1821,14 @@ described in dc-core.
    statement of the version in the repo must agree.
 4. Add a `## v<version>` section at the top of CHANGELOG.md
    summarizing what shipped since the previous release.
-5. Update the README status line if it names a version.
+5. Update the README status line if it names a version. Confirm the
+   project's identity prose (agent orientation file and any plugin or
+   package manifests) names everything this release ships.
 6. Re-run the verify command, then commit as
-   `chore: release v<version>` and tag `v<version>`.
+   `chore: release v<version>` and create an annotated tag:
+   `git tag -a v<version> -m "release v<version>"`. Note that
+   `git push --follow-tags` only pushes annotated tags; push the tag
+   explicitly if in doubt.
 7. Ask before pushing; pushing the commit and tag is the user's call.
 8. Journal the release with the dc-core journal helper.
 ```
@@ -1898,7 +1903,7 @@ def test_stack_makefile_has_required_targets(stack):
 
 
 def test_scaffold_root_has_only_family_dirs():
-    entries = {p.name for p in SCAFFOLD.iterdir()}
+    entries = {p.name for p in SCAFFOLD.iterdir() if p.is_dir()}
     assert entries == {"common"} | set(STACKS)
 
 
@@ -1941,7 +1946,7 @@ Replace `plugins/dev-commander/skills/dc-scaffold/SKILL.md` entirely with:
 ```markdown
 ---
 name: dc-scaffold
-description: Project scaffolding for Dev Commander. Use when the user runs /dc:scaffold or asks to set up a new project. Offers stack families (python, node-ts, go) with a shared documentation set, generating a Makefile with install, lint, test, build, and run targets plus README, CHANGELOG, and TODO from bundled templates.
+description: Project scaffolding for Dev Commander. Use when the user runs /dc:scaffold or asks to set up a new project. Offers stack families (e.g. python, node-ts, go) with a shared documentation set, generating a Makefile with install, lint, test, build, and run targets plus README, CHANGELOG, and TODO from bundled templates.
 ---
 
 # dc-scaffold
