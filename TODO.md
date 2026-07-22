@@ -2,7 +2,6 @@
 
 ## v0.2 (planned — see planning/plan.md, Tasks 11-18)
 
-- Phase 10: node-ts scaffold family.
 - Phase 11: go scaffold family.
 - Phase 12: dc-design skill (design docs and ADRs) with design/ workspace directory.
 - Phase 13: dc-branch skill (branch and PR workflow).

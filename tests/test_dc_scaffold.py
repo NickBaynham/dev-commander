@@ -13,6 +13,10 @@ STACKS = {
         "Makefile.tmpl", "pyproject.toml.tmpl", "docker-compose.yml.tmpl",
         "tests/test_smoke.py.tmpl",
     ],
+    "node-ts": [
+        "Makefile.tmpl", "package.json.tmpl", "tsconfig.json.tmpl",
+        "src/index.ts.tmpl", "tests/smoke.test.ts.tmpl",
+    ],
 }
 
 

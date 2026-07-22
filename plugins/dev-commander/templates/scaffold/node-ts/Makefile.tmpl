@@ -1,0 +1,19 @@
+.PHONY: help install lint test build run
+
+help:
+	@echo "{{project_name}} - Make targets: install, lint, test, build, run"
+
+install:
+	npm install
+
+lint:
+	npm run lint
+
+test:
+	npm test
+
+build:
+	npm run build
+
+run:
+	npm start

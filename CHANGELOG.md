@@ -1,5 +1,12 @@
 # Changelog
 
+## Phase 10 — node-ts scaffold family
+
+- Added node-ts stack family with TypeScript + vitest toolchain.
+- Template files: Makefile, package.json, tsconfig.json, src/index.ts, tests/smoke.test.ts.
+- Updated test_dc_scaffold.py with parametrized node-ts completeness tests.
+- Fresh scaffolds pass npm install && make lint test without manual editing.
+
 ## Phase 9 — Multi-stack scaffold restructure
 
 - Reorganized scaffold templates into stack families under templates/scaffold/.
