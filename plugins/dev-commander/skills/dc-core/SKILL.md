@@ -46,8 +46,12 @@ Run: `python3 <plugin-root>/scripts/journal.py <project-root> <entry text>`
 
 ### /dc:next
 
-Recommend the next command from workspace state: no plans means /dc:plan;
-open checkboxes in any plan means /dc:implement; fewer reviews than plans
-means /dc:review; otherwise /dc:handoff-to-tc.
+Recommend the next command from workspace state, walking the full lifecycle:
+no plans means /dc:plan (or /dc:design first for weighty work); open
+checkboxes in any plan means /dc:implement (with /dc:branch to isolate the
+work); fewer reviews than plans means /dc:review; no handoff bundle yet
+means /dc:handoff-to-tc or /dc:pr; a bundle with no lessons captured means
+/dc:learn then /dc:release; and once lessons exist the cycle is complete,
+so /dc:release or /dc:plan for the next feature.
 
 Run: `python3 <plugin-root>/scripts/next_step.py <project-root>`

@@ -738,14 +738,22 @@ from pathlib import Path
 def recommend(ws: Path) -> str:
     plans = [p for p in (ws / "plans").glob("*.md")]
     if not plans:
-        return "No plans yet. Run /dc:plan to produce an implementation plan."
-    open_boxes = any("- [ ]" in p.read_text() for p in plans)
-    if open_boxes:
-        return "Open increments remain. Run /dc:implement to execute the next one."
+        return ("No plans yet. Run /dc:plan to produce an implementation plan, "
+                "or /dc:design first for architecturally significant work.")
+    if any("- [ ]" in p.read_text() for p in plans):
+        return ("Open increments remain. Run /dc:implement to execute the next one; "
+                "use /dc:branch first to isolate the work on a feature branch.")
     reviews = [p for p in (ws / "reviews").glob("*.md") if "plan-review" not in p.name]
     if len(reviews) < len(plans):
         return "All increments complete. Run /dc:review for a rubric-driven review."
-    return "Reviewed and complete. Run /dc:handoff-to-tc to package for Test Commander."
+    if not [p for p in (ws / "handoff").iterdir() if p.is_dir()]:
+        return ("Reviewed and complete. Run /dc:handoff-to-tc to package for Test "
+                "Commander, or /dc:pr to open a pull request.")
+    if not list((ws / "learning").glob("*.md")):
+        return ("Handed off. Run /dc:learn to capture lessons from this cycle, "
+                "then /dc:release to cut a version.")
+    return ("Cycle complete. Run /dc:release to cut a version, or /dc:plan to "
+            "start the next feature.")
 
 
 def main() -> int:
@@ -762,10 +770,15 @@ if __name__ == "__main__":
     sys.exit(main())
 ```
 
+The recommender reads only workspace state (no git calls); the /dc:branch
+and /dc:pr suggestions are advice within the implement and handoff states,
+not gates. Extended post-v0.2 from the original four-state chain to walk the
+full lifecycle (design, branch, handoff/pr, learn, release).
+
 - [x] **Step 8: Run tests to verify they pass**
 
 Run: `pdm run pytest tests/test_dc_core.py -v`
-Expected: 8 passed.
+Expected: 12 passed.
 
 - [x] **Step 9: Write dc-core SKILL.md**
 
@@ -818,9 +831,13 @@ Run: `python3 <plugin-root>/scripts/journal.py <project-root> <entry text>`
 
 ### /dc:next
 
-Recommend the next command from workspace state: no plans means /dc:plan;
-open checkboxes in any plan means /dc:implement; fewer reviews than plans
-means /dc:review; otherwise /dc:handoff-to-tc.
+Recommend the next command from workspace state, walking the full lifecycle:
+no plans means /dc:plan (or /dc:design first for weighty work); open
+checkboxes in any plan means /dc:implement (with /dc:branch to isolate the
+work); fewer reviews than plans means /dc:review; no handoff bundle yet
+means /dc:handoff-to-tc or /dc:pr; a bundle with no lessons captured means
+/dc:learn then /dc:release; and once lessons exist the cycle is complete,
+so /dc:release or /dc:plan for the next feature.
 
 Run: `python3 <plugin-root>/scripts/next_step.py <project-root>`
 ```

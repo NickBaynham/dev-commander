@@ -78,3 +78,46 @@ def test_status_counts_handoff_bundles(tmp_path):
     (bundle / "summary.md").write_text("# summary\n")
     result = run("status.py", tmp_path)
     assert "handoff: 1" in result.stdout
+
+
+def _reviewed_plan(ws):
+    (ws / "plans" / "0001-example.md").write_text("- [x] Task 1\n")
+    (ws / "reviews" / "0001-example.md").write_text("approve\n")
+
+
+def test_next_recommends_review_when_increments_done(tmp_path):
+    run("init_workspace.py", tmp_path)
+    ws = tmp_path / ".dev-commander"
+    (ws / "plans" / "0001-example.md").write_text("- [x] Task 1\n")
+    result = run("next_step.py", tmp_path)
+    assert result.returncode == 0
+    assert "/dc:review" in result.stdout
+
+
+def test_next_recommends_handoff_when_reviewed(tmp_path):
+    run("init_workspace.py", tmp_path)
+    _reviewed_plan(tmp_path / ".dev-commander")
+    result = run("next_step.py", tmp_path)
+    assert "/dc:handoff-to-tc" in result.stdout
+
+
+def test_next_recommends_learn_after_handoff(tmp_path):
+    run("init_workspace.py", tmp_path)
+    ws = tmp_path / ".dev-commander"
+    _reviewed_plan(ws)
+    (ws / "handoff" / "0001-example").mkdir()
+    (ws / "handoff" / "0001-example" / "summary.md").write_text("# summary\n")
+    result = run("next_step.py", tmp_path)
+    assert "/dc:learn" in result.stdout
+
+
+def test_next_recommends_release_when_cycle_complete(tmp_path):
+    run("init_workspace.py", tmp_path)
+    ws = tmp_path / ".dev-commander"
+    _reviewed_plan(ws)
+    (ws / "handoff" / "0001-example").mkdir()
+    (ws / "handoff" / "0001-example" / "summary.md").write_text("# summary\n")
+    (ws / "learning" / "0001-lesson.md").write_text("Status: candidate\n")
+    result = run("next_step.py", tmp_path)
+    assert "Cycle complete" in result.stdout
+    assert "/dc:release" in result.stdout

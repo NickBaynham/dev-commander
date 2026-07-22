@@ -1,5 +1,16 @@
 # Changelog
 
+## next_step lifecycle recommender
+
+- feat: /dc:next now walks the full v0.2 lifecycle. The recommender was a
+  v0.1 four-state chain (plan, implement, review, handoff) that could never
+  surface the v0.2 skills. It now suggests /dc:design before planning when
+  no plan exists, /dc:branch alongside /dc:implement, /dc:pr alongside
+  /dc:handoff-to-tc, /dc:learn then /dc:release once a handoff bundle exists,
+  and reports the cycle complete (offering /dc:release or a fresh /dc:plan)
+  once lessons are captured. Reads only workspace state; the branch and pr
+  suggestions are advice, not gates. Four new tests cover the added states.
+
 ## v0.2.0 release fixes
 
 Whole-branch review of the v0.2.0 release surfaced three defects, fixed
