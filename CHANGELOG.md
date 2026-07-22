@@ -1,5 +1,16 @@
 # Changelog
 
+## Phase 17: dc-secscan skill
+
+- feat: dc-secscan skill ships security scanning for Dev Commander. /dc:scan
+  detects the project stack and runs the stack-native dependency scanner
+  (pip-audit for python, npm audit --audit-level=high for node-ts,
+  govulncheck for go) plus gitleaks for secrets, writes reports to
+  .dev-commander/security/NNNN-<slug>.md, and supplies the canonical scan
+  commands that dc-ci embeds in the CI pipeline. Reports are grouped by
+  severity, with high/critical dependency vulns and any committed secret as
+  gating findings; missing tools are reported but never fatal.
+
 ## Phase 16: security/ workspace directory
 
 - feat: added `security/` workspace directory to `.dev-commander/` between

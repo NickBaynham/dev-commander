@@ -17,6 +17,7 @@ EXPECTED = {
     "dc-release": ["/dc:release", "bump_version", "CHANGELOG"],
     "dc-branch": ["/dc:branch", "/dc:pr", "increment records"],
     "dc-learning": ["/dc:learn", "learning/", "candidate"],
+    "dc-secscan": ["/dc:scan", "security/", "gitleaks"],
 }
 
 
