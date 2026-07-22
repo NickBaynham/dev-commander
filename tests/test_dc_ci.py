@@ -57,3 +57,11 @@ def test_ci_make_targets_exist_in_scaffold(stack):
             assert f"{target}:" in makefile, (
                 f"{stack} CI runs 'make {target}' but its Makefile.tmpl lacks it"
             )
+
+
+@pytest.mark.parametrize("stack", STACKS)
+def test_ci_has_no_unsubstituted_placeholders(stack):
+    text, _doc = _load(stack)
+    # Our mustache placeholders all start with {{project ; GitHub Actions
+    # ${{ ... }} expressions are legitimate and must not trip this.
+    assert "{{project" not in text, f"{stack} CI has an unsubstituted placeholder"

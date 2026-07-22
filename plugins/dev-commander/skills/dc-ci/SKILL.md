@@ -11,9 +11,9 @@ Actions is the only provider in v0.3.
 
 ## Stack detection
 
-Infer the stack from project files: `pyproject.toml` means python,
+Infer the stack from project files: `pyproject.toml` present means python,
 `package.json` means node-ts, `go.mod` means go. If none or more than one
-is present, ask the user which stack.
+is present, ask the user which stack rather than guessing.
 
 ## /dc:ci
 

@@ -2941,6 +2941,14 @@ def test_ci_make_targets_exist_in_scaffold(stack):
             assert f"{target}:" in makefile, (
                 f"{stack} CI runs 'make {target}' but its Makefile.tmpl lacks it"
             )
+
+
+@pytest.mark.parametrize("stack", STACKS)
+def test_ci_has_no_unsubstituted_placeholders(stack):
+    text, _doc = _load(stack)
+    # Our mustache placeholders all start with {{project ; GitHub Actions
+    # ${{ ... }} expressions are legitimate and must not trip this.
+    assert "{{project" not in text, f"{stack} CI has an unsubstituted placeholder"
 ```
 
 - [x] **Step 2: Run tests to verify they fail**
@@ -2975,6 +2983,9 @@ jobs:
           pip-audit -r requirements.txt
       - name: secret scan
         uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Organizations must also set a GITLEAKS_LICENSE secret.
 ```
 
 `plugins/dev-commander/templates/ci/github/node-ts/ci.yml.tmpl`:
@@ -2998,6 +3009,9 @@ jobs:
         run: npm audit --audit-level=high
       - name: secret scan
         uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Organizations must also set a GITLEAKS_LICENSE secret.
 ```
 
 `plugins/dev-commander/templates/ci/github/go/ci.yml.tmpl`:
@@ -3023,12 +3037,15 @@ jobs:
           govulncheck ./...
       - name: secret scan
         uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Organizations must also set a GITLEAKS_LICENSE secret.
 ```
 
 - [x] **Step 4: Run tests to verify they pass**
 
 Run: `pdm run pytest tests/test_dc_ci.py -v && make verify`
-Expected: all 18 parametrized cases pass; verifier clean.
+Expected: all 21 parametrized cases pass; verifier clean.
 
 - [x] **Step 5: Commit**
 
@@ -3078,9 +3095,9 @@ Actions is the only provider in v0.3.
 
 ## Stack detection
 
-Infer the stack from project files: `pyproject.toml` means python,
+Infer the stack from project files: `pyproject.toml` present means python,
 `package.json` means node-ts, `go.mod` means go. If none or more than one
-is present, ask the user which stack.
+is present, ask the user which stack rather than guessing.
 
 ## /dc:ci
 
