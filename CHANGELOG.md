@@ -1,5 +1,14 @@
 # Changelog
 
+## Phase 20: next_step security state
+
+- feat: /dc:next now recommends /dc:scan before /dc:release when the cycle
+  is otherwise complete (lessons captured) but no security scan report exists.
+  This inserts a new state in the lifecycle recommender between learn and
+  release, making security scanning mandatory before cutting a version.
+  Updated next_step.py, the /dc:next SKILL.md description, and the workspace
+  lifecycle integration test to walk the scan state.
+
 ## Phase 19: dc-ci skill
 
 - feat: dc-ci skill ships CI pipeline generation for Dev Commander. /dc:ci

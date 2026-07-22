@@ -73,8 +73,12 @@ def test_full_lifecycle(tmp_path):
     assert "handoff: 1" in run("status.py", tmp_path).stdout
     assert "/dc:learn" in run("next_step.py", tmp_path).stdout
 
-    # learn (dc-learning): a captured lesson completes the cycle.
+    # learn (dc-learning): a captured lesson leaves one hardening step.
     (ws / "learning" / "0001-lesson.md").write_text("Status: candidate\n")
+    assert "/dc:scan" in run("next_step.py", tmp_path).stdout
+
+    # scan (dc-secscan): a security report completes the cycle.
+    (ws / "security" / "0001-scan.md").write_text("verdict: clean\n")
     final = run("next_step.py", tmp_path)
     assert "Cycle complete" in final.stdout
     assert "/dc:release" in final.stdout
@@ -88,3 +92,4 @@ def test_full_lifecycle(tmp_path):
     # reviews counts both the code review and the plan-review file.
     assert "reviews: 2" in end.stdout
     assert "learning: 1" in end.stdout
+    assert "security: 1" in end.stdout

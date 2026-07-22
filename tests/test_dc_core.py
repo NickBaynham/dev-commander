@@ -128,6 +128,17 @@ def test_next_recommends_learn_after_handoff(tmp_path):
     assert "/dc:learn" in result.stdout
 
 
+def test_next_recommends_scan_when_no_security_report(tmp_path):
+    run("init_workspace.py", tmp_path)
+    ws = tmp_path / ".dev-commander"
+    _reviewed_plan(ws)
+    (ws / "handoff" / "0001-example").mkdir()
+    (ws / "handoff" / "0001-example" / "summary.md").write_text("# summary\n")
+    (ws / "learning" / "0001-lesson.md").write_text("Status: candidate\n")
+    result = run("next_step.py", tmp_path)
+    assert "/dc:scan" in result.stdout
+
+
 def test_next_recommends_release_when_cycle_complete(tmp_path):
     run("init_workspace.py", tmp_path)
     ws = tmp_path / ".dev-commander"
@@ -135,6 +146,7 @@ def test_next_recommends_release_when_cycle_complete(tmp_path):
     (ws / "handoff" / "0001-example").mkdir()
     (ws / "handoff" / "0001-example" / "summary.md").write_text("# summary\n")
     (ws / "learning" / "0001-lesson.md").write_text("Status: candidate\n")
+    (ws / "security" / "0001-scan.md").write_text("verdict: clean\n")
     result = run("next_step.py", tmp_path)
     assert "Cycle complete" in result.stdout
     assert "/dc:release" in result.stdout
