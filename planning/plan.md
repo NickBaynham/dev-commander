@@ -2700,7 +2700,7 @@ Workspace layout after v0.3 (`.dev-commander/`): project.md plus `journal/`, `pl
 - Consumes: the workspace contract from Task 3; `init_workspace.py` copies the template tree recursively, so adding the directory to the template is all init needs.
 - Produces: the `.dev-commander/security/` directory (holding `NNNN-<slug>.md` scan reports) that dc-secscan (Task 20) writes into and next_step (Task 23) reads.
 
-- [ ] **Step 1: Update the DIRS constant in the two test files (failing first)**
+- [x] **Step 1: Update the DIRS constant in the two test files (failing first)**
 
 In `tests/test_dc_core.py`, change the DIRS constant to:
 
@@ -2720,12 +2720,12 @@ WORKSPACE_DIRS = [
 ]
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `pdm run pytest tests/test_dc_core.py::test_init_creates_workspace tests/test_lifecycle_integration.py -v`
 Expected: FAIL — `security/` is asserted but the template does not create it yet.
 
-- [ ] **Step 3: Create the template directory and update status.py**
+- [x] **Step 3: Create the template directory and update status.py**
 
 Create `plugins/dev-commander/templates/workspace/security/.gitkeep` (empty file).
 
@@ -2738,16 +2738,16 @@ DIRS = [
 ]
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `pdm run pytest tests/test_dc_core.py tests/test_lifecycle_integration.py -v && make verify`
 Expected: all pass; verifier clean.
 
-- [ ] **Step 5: Update the workspace layout in this plan**
+- [x] **Step 5: Update the workspace layout in this plan**
 
 In the v0.1 and v0.2 workspace-layout listings, confirm `security/` appears between `learning/` and `handoff/`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 Update CHANGELOG.md (a Phase 16 section at the top) and TODO.md is unchanged (v0.3 was tracked as a single "Later" line, removed in Task 24). Commit:
 
@@ -2768,7 +2768,7 @@ git commit -m "feat: security/ workspace directory (Phase 16)"
 - Consumes: the `security/` directory from Task 19.
 - Produces: scan reports at `.dev-commander/security/NNNN-<slug>.md`; the canonical per-stack scan commands (`pip-audit`, `npm audit --audit-level=high`, `govulncheck ./...`, `gitleaks detect`) that the CI templates (Task 21) embed.
 
-- [ ] **Step 1: Add the dc-secscan case and verify it fails**
+- [x] **Step 1: Add the dc-secscan case and verify it fails**
 
 Append to `EXPECTED` in `tests/test_dc_skills.py`:
 
@@ -2779,7 +2779,7 @@ Append to `EXPECTED` in `tests/test_dc_skills.py`:
 Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-secscan]" -v`
 Expected: FAIL — missing SKILL.md.
 
-- [ ] **Step 2: Write dc-secscan SKILL.md**
+- [x] **Step 2: Write dc-secscan SKILL.md**
 
 ```markdown
 ---
@@ -2835,12 +2835,12 @@ engine as the local `gitleaks detect`. Local scans and the pipeline check
 the same things.
 ```
 
-- [ ] **Step 3: Run tests to verify they pass**
+- [x] **Step 3: Run tests to verify they pass**
 
 Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-secscan]" -v && make verify`
 Expected: pass; verifier clean.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 Update CHANGELOG.md (Phase 17 section) in the same commit.
 
@@ -2864,7 +2864,7 @@ git commit -m "feat: dc-secscan skill (Phase 17)"
 - Consumes: the scan commands documented by dc-secscan (Task 20); the scaffold `Makefile.tmpl` targets from Tasks 12-14.
 - Produces: the template family `templates/ci/github/<stack>/ci.yml.tmpl` that dc-ci (Task 22) reads. Each template substitutes only `{{project_name}}`.
 
-- [ ] **Step 1: Add pyyaml and write the failing tests**
+- [x] **Step 1: Add pyyaml and write the failing tests**
 
 In `pyproject.toml`, change the dev dependency group to:
 
@@ -2943,12 +2943,12 @@ def test_ci_make_targets_exist_in_scaffold(stack):
             )
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `pdm run pytest tests/test_dc_ci.py -v`
 Expected: FAIL — the CI templates do not exist.
 
-- [ ] **Step 3: Write the three CI templates**
+- [x] **Step 3: Write the three CI templates**
 
 `plugins/dev-commander/templates/ci/github/python/ci.yml.tmpl`:
 
@@ -3025,12 +3025,12 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `pdm run pytest tests/test_dc_ci.py -v && make verify`
 Expected: all 18 parametrized cases pass; verifier clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Update CHANGELOG.md (Phase 18 section) in the same commit. `pdm.lock` changed when pyyaml was added; include it.
 
@@ -3051,7 +3051,7 @@ git commit -m "feat: GitHub Actions CI template family and test_dc_ci (Phase 18)
 - Consumes: the CI template family from Task 21.
 - Produces: the `/dc:ci` command that writes `.github/workflows/ci.yml` into a project.
 
-- [ ] **Step 1: Add the dc-ci case and verify it fails**
+- [x] **Step 1: Add the dc-ci case and verify it fails**
 
 Append to `EXPECTED` in `tests/test_dc_skills.py`:
 
@@ -3062,7 +3062,7 @@ Append to `EXPECTED` in `tests/test_dc_skills.py`:
 Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-ci]" -v`
 Expected: FAIL — missing SKILL.md.
 
-- [ ] **Step 2: Write dc-ci SKILL.md**
+- [x] **Step 2: Write dc-ci SKILL.md**
 
 ```markdown
 ---
@@ -3099,12 +3099,12 @@ is present, ask the user which stack.
    findings before relying on the gate.
 ```
 
-- [ ] **Step 3: Run tests to verify they pass**
+- [x] **Step 3: Run tests to verify they pass**
 
 Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-ci]" -v && make verify`
 Expected: pass; verifier clean.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 Update CHANGELOG.md (Phase 19 section) in the same commit.
 
@@ -3127,7 +3127,7 @@ git commit -m "feat: dc-ci skill (Phase 19)"
 - Consumes: the `security/` directory from Task 19.
 - Produces: a lifecycle state that recommends `/dc:scan` when the cycle is otherwise complete but no scan report exists.
 
-- [ ] **Step 1: Update the affected tests (failing first)**
+- [x] **Step 1: Update the affected tests (failing first)**
 
 In `tests/test_dc_core.py`, the existing `test_next_recommends_release_when_cycle_complete` must first write a security report so it still reaches the cycle-complete state, and a new test covers the scan state. Replace `test_next_recommends_release_when_cycle_complete` with these two functions:
 
@@ -3181,12 +3181,12 @@ In `tests/test_lifecycle_integration.py`, in `test_full_lifecycle`, insert a sec
     assert "security: 1" in end.stdout
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `pdm run pytest tests/test_dc_core.py::test_next_recommends_scan_when_no_security_report tests/test_lifecycle_integration.py -v`
 Expected: FAIL — next_step.py never recommends /dc:scan yet, so the scan-state assertions fail.
 
-- [ ] **Step 3: Add the security check to next_step.py**
+- [x] **Step 3: Add the security check to next_step.py**
 
 In `plugins/dev-commander/scripts/next_step.py`, replace the final learning check and terminal return:
 
@@ -3211,16 +3211,16 @@ with:
             "start the next feature.")
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `pdm run pytest tests/test_dc_core.py tests/test_lifecycle_integration.py -v && make verify`
 Expected: all pass; verifier clean.
 
-- [ ] **Step 5: Sync the plan mirrors**
+- [x] **Step 5: Sync the plan mirrors**
 
 In `planning/plan.md`, update the Task 3 `next_step.py` code block (Step 7) to include the new security check, and update the `/dc:next` description in the Task 3 SKILL.md block (Step 9) to mention the security state. Match the shipped code and SKILL.md exactly.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 Update CHANGELOG.md (Phase 20 section) in the same commit.
 
@@ -3244,7 +3244,7 @@ git commit -m "feat: next_step recommends /dc:scan before release (Phase 20)"
 - Consumes: everything above; follows dc-release's /dc:release process.
 - Produces: tagged v0.3.0 on origin; installed plugin at 0.3.0.
 
-- [ ] **Step 1: Update the README command table and status line**
+- [x] **Step 1: Update the README command table and status line**
 
 Add rows to the command table in `README.md`:
 
@@ -3255,25 +3255,25 @@ Add rows to the command table in `README.md`:
 
 Set the README status line to: `Status: Phases 0-21 complete; v0.3.0 shipped.`
 
-- [ ] **Step 2: Update AGENTS.md identity prose**
+- [x] **Step 2: Update AGENTS.md identity prose**
 
 In `AGENTS.md`, extend the Project identity paragraph's skill enumeration to name the two new skills — "security scanning (dc-secscan)" and "CI pipeline generation (dc-ci)" — and change "Decisions (DC1-DC10)" to "Decisions (DC1-DC14)".
 
-- [ ] **Step 3: Update both manifest descriptions**
+- [x] **Step 3: Update both manifest descriptions**
 
 In `.claude-plugin/marketplace.json` and `plugins/dev-commander/.claude-plugin/plugin.json`, extend the `description` to mention security scanning and CI pipeline generation.
 
-- [ ] **Step 4: Bump the version to 0.3.0**
+- [x] **Step 4: Bump the version to 0.3.0**
 
 Run: `python3 plugins/dev-commander/scripts/bump_version.py . 0.3.0`
 Expected: `updated pyproject.toml`.
 Then set `"version": "0.3.0"` in `.claude-plugin/marketplace.json` (plugins entry) and `plugins/dev-commander/.claude-plugin/plugin.json`. Confirm all three agree.
 
-- [ ] **Step 5: Add the CHANGELOG v0.3.0 section and clear the TODO line**
+- [x] **Step 5: Add the CHANGELOG v0.3.0 section and clear the TODO line**
 
 Add a `## v0.3.0` section at the top of `CHANGELOG.md` summarizing Phases 16-21. In `TODO.md`, remove the line `- CI/CD workflow generation and dependency/security scanning skills.`
 
-- [ ] **Step 6: Verify, commit, tag, push**
+- [x] **Step 6: Verify, commit, tag, push**
 
 Run: `make verify && claude plugin validate . && claude plugin validate plugins/dev-commander`
 Expected: all clean.
@@ -3286,12 +3286,12 @@ git push origin main
 git push origin v0.3.0
 ```
 
-- [ ] **Step 7: Refresh and confirm the installed plugin**
+- [x] **Step 7: Refresh and confirm the installed plugin**
 
 Run: `claude plugin uninstall dev-commander && claude plugin install dev-commander@dev-commander-marketplace`
 Then confirm the installed cache carries dc-secscan, dc-ci, and the `templates/ci/github/` family, and that the active install path is 0.3.0.
 
-- [ ] **Step 8: Check off this plan's checkboxes and record completion**
+- [x] **Step 8: Check off this plan's checkboxes and record completion**
 
 In `planning/plan.md`, check off the v0.3 task checkboxes and add a `## v0.3 Completed` section listing Tasks 19-24 with their commit SHAs and today's date. Commit as `docs: v0.3 completion record`.
 
@@ -3301,4 +3301,11 @@ Tracked in [TODO.md](../TODO.md). Deferred beyond v0.3: continuous deployment to
 
 ## v0.3 Completed
 
-(Empty. Move task names here with dates as they ship.)
+All six tasks shipped 2026-07-22:
+
+- Task 19: security/ workspace directory (4779532)
+- Task 20: dc-secscan skill (fd0fd83)
+- Task 21: CI template family and test_dc_ci.py (792322e, fix aed91e8, docs fdc5ec1)
+- Task 22: dc-ci skill (ec6132f)
+- Task 23: next_step /dc:scan recommendation (db3b200, docs fix bff1ccd)
+- Task 24: v0.3 docs and release, dogfooding dc-release (93fbc19, tagged v0.3.0)
