@@ -2,7 +2,6 @@
 
 ## v0.2 (planned — see planning/plan.md, Tasks 11-18)
 
-- Phase 12: dc-design skill (design docs and ADRs) with design/ workspace directory.
 - Phase 13: dc-branch skill (branch and PR workflow).
 - Phase 14: dc-learning skill (governed lesson capture) with learning/ workspace directory.
 - Phase 15: v0.2 release, dogfooding dc-release.

@@ -1,5 +1,14 @@
 # Changelog
 
+## Phase 12 — dc-design skill and design workspace directory
+
+- dc-design skill: /dc:design and /dc:adr commands for architecture design and decision records.
+- Design is optional per feature; features with architectural weight get a design doc or ADR before planning.
+- Design docs stored at .dev-commander/design/NNNN-<slug>.md with sections: Goal, Context, Approach, Alternatives, Interfaces, Risks.
+- Architecture decision records stored at .dev-commander/design/adr-NNNN-<slug>.md with sections: Status, Context, Decision, Consequences.
+- Workspace initialized with design/ directory template.
+- Updated DIRS constant in status.py and test_dc_core.py.
+
 ## Phase 11 — go scaffold family
 
 - Added go stack family with Go 1.23 toolchain.

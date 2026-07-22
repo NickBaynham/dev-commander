@@ -68,6 +68,7 @@ dev-commander/
     │   │   ├── increments/.gitkeep
     │   │   ├── reviews/.gitkeep
     │   │   ├── debug/.gitkeep
+    │   │   ├── design/.gitkeep
     │   │   └── handoff/.gitkeep
     │   └── scaffold/              # used by /dc:scaffold
     │       ├── common/            # stack-agnostic docs
@@ -86,6 +87,7 @@ dev-commander/
         ├── dc-implement/SKILL.md
         ├── dc-review/SKILL.md
         ├── dc-debug/SKILL.md
+        ├── dc-design/SKILL.md
         └── dc-handoff/SKILL.md
 ```
 
@@ -99,6 +101,7 @@ Workspace layout created in a consuming project by `/dc:init`:
 ├── increments/       # per-increment records from /dc:implement
 ├── reviews/          # review reports from /dc:review
 ├── debug/            # root-cause investigation reports from /dc:debug
+├── design/           # design docs and ADRs
 └── handoff/          # artifacts for Test Commander ingestion
 ```
 
