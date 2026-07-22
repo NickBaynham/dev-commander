@@ -28,7 +28,10 @@ Rubric:
    - Tests: behavior-focused, failing-first evidence recorded, no
      assertions weakened to force a pass.
 3. Write the report to `.dev-commander/reviews/NNNN-<slug>.md`, where
-   NNNN is the next zero-padded sequence number, with a verdict:
+   NNNN is the next zero-padded sequence number in the code-review
+   series, independent of the plan-review series (the two share the
+   reviews/ directory but are numbered separately, distinguished by the
+   `plan-review` infix), with a verdict:
    approve, approve with repairs, or request changes.
 4. Do not modify code during review. Repairs are applied by
    /dc:implement or by the user.

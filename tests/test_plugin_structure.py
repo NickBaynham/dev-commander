@@ -23,10 +23,43 @@ def test_root_documents_exist():
         assert (ROOT / name).is_file(), f"missing {name}"
 
 
-def test_no_emojis_in_root_docs():
-    for name in ["README.md", "CHANGELOG.md", "TODO.md", "AGENTS.md"]:
-        text = (ROOT / name).read_text()
-        assert not any(ord(ch) > 0x2500 for ch in text), f"emoji or symbol in {name}"
+_EMOJI_RANGES = [
+    (0x2600, 0x27BF),    # miscellaneous symbols and dingbats
+    (0x2B00, 0x2BFF),    # miscellaneous symbols and arrows
+    (0xFE00, 0xFE0F),    # emoji variation selectors
+    (0x1F000, 0x1FAFF),  # supplementary emoji and pictograph blocks
+]
+
+
+def _emoji_chars(text):
+    return {ch for ch in text if any(lo <= ord(ch) <= hi for lo, hi in _EMOJI_RANGES)}
+
+
+def _scanned_files():
+    files = [
+        ROOT / n for n in [
+            "README.md", "CHANGELOG.md", "TODO.md", "AGENTS.md", "CLAUDE.md",
+            "Makefile", "pyproject.toml",
+        ]
+    ]
+    files.append(ROOT / ".claude-plugin" / "marketplace.json")
+    for pattern in ("*.md", "*.py", "*.json", "*.tmpl"):
+        files.extend(PLUGIN.rglob(pattern))
+    return [f for f in files if f.is_file()]
+
+
+def test_emoji_scan_covers_expected_files():
+    names = {f.name for f in _scanned_files()}
+    for required in ["Makefile", "marketplace.json", "plugin.json", "SKILL.md"]:
+        assert required in names, f"emoji scan misses {required}"
+    assert any(n.endswith(".py") for n in names), "emoji scan misses plugin scripts"
+    assert any(n.endswith(".tmpl") for n in names), "emoji scan misses templates"
+
+
+def test_no_emojis_anywhere():
+    for f in _scanned_files():
+        found = _emoji_chars(f.read_text())
+        assert not found, f"emoji {[hex(ord(c)) for c in found]} in {f.relative_to(ROOT)}"
 
 
 def test_verify_skills_runs_clean():

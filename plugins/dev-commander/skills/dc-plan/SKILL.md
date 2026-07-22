@@ -34,5 +34,7 @@ the workspace. Plans are the contract dc-implement executes.
 Review an existing plan file against the increment rubric above. Report
 one finding per violated rubric item with the increment heading and a
 concrete repair. Write the review to
-`.dev-commander/reviews/NNNN-plan-review-<slug>.md` and give an overall
-verdict: ready, ready with repairs, or not ready.
+`.dev-commander/reviews/NNNN-plan-review-<slug>.md`, where NNNN is the
+next zero-padded sequence number in the plan-review series, independent
+of the code-review series. Give an overall verdict: ready, ready with
+repairs, or not ready.

@@ -56,6 +56,23 @@ def test_journal_appends_dated_entry(tmp_path):
     assert "Chose pdm over poetry" in entries[0].read_text()
 
 
+def test_journal_sequence_survives_deletion(tmp_path):
+    from datetime import date
+
+    run("init_workspace.py", tmp_path)
+    journal = tmp_path / ".dev-commander" / "journal"
+    today = date.today().isoformat()
+    for n in (1, 2, 3):
+        (journal / f"{today}-{n:02d}.md").write_text(f"entry {n}\n")
+    (journal / f"{today}-02.md").unlink()
+    result = run("journal.py", tmp_path, "New entry after deletion")
+    assert result.returncode == 0
+    # Next number is max(existing) + 1 = 4, not count + 1 = 3 (which would
+    # silently overwrite entry 03).
+    assert (journal / f"{today}-04.md").is_file()
+    assert (journal / f"{today}-03.md").read_text() == "entry 3\n"
+
+
 def test_next_recommends_plan_when_no_plans(tmp_path):
     run("init_workspace.py", tmp_path)
     result = run("next_step.py", tmp_path)

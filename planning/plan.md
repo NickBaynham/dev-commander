@@ -716,7 +716,12 @@ def main() -> int:
         print("no .dev-commander/ workspace; run /dc:init first")
         return 1
     today = date.today().isoformat()
-    seq = len(list(journal.glob(f"{today}-*.md"))) + 1
+    used = [
+        int(p.stem.rsplit("-", 1)[-1])
+        for p in journal.glob(f"{today}-*.md")
+        if p.stem.rsplit("-", 1)[-1].isdigit()
+    ]
+    seq = (max(used) + 1) if used else 1
     entry = journal / f"{today}-{seq:02d}.md"
     entry.write_text(f"# {today} entry {seq:02d}\n\n{text}\n")
     print(f"journal entry written: {entry.name}")
@@ -1179,8 +1184,10 @@ the workspace. Plans are the contract dc-implement executes.
 Review an existing plan file against the increment rubric above. Report
 one finding per violated rubric item with the increment heading and a
 concrete repair. Write the review to
-`.dev-commander/reviews/NNNN-plan-review-<slug>.md` and give an overall
-verdict: ready, ready with repairs, or not ready.
+`.dev-commander/reviews/NNNN-plan-review-<slug>.md`, where NNNN is the
+next zero-padded sequence number in the plan-review series, independent
+of the code-review series. Give an overall verdict: ready, ready with
+repairs, or not ready.
 ```
 
 - [x] **Step 4: Run test to verify dc-plan case passes**
@@ -1329,7 +1336,10 @@ Rubric:
    - Tests: behavior-focused, failing-first evidence recorded, no
      assertions weakened to force a pass.
 3. Write the report to `.dev-commander/reviews/NNNN-<slug>.md`, where
-   NNNN is the next zero-padded sequence number, with a verdict:
+   NNNN is the next zero-padded sequence number in the code-review
+   series, independent of the plan-review series (the two share the
+   reviews/ directory but are numbered separately, distinguished by the
+   `plan-review` infix), with a verdict:
    approve, approve with repairs, or request changes.
 4. Do not modify code during review. Repairs are applied by
    /dc:implement or by the user.

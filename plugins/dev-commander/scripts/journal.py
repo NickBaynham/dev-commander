@@ -14,7 +14,12 @@ def main() -> int:
         print("no .dev-commander/ workspace; run /dc:init first")
         return 1
     today = date.today().isoformat()
-    seq = len(list(journal.glob(f"{today}-*.md"))) + 1
+    used = [
+        int(p.stem.rsplit("-", 1)[-1])
+        for p in journal.glob(f"{today}-*.md")
+        if p.stem.rsplit("-", 1)[-1].isdigit()
+    ]
+    seq = (max(used) + 1) if used else 1
     entry = journal / f"{today}-{seq:02d}.md"
     entry.write_text(f"# {today} entry {seq:02d}\n\n{text}\n")
     print(f"journal entry written: {entry.name}")

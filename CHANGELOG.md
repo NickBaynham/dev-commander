@@ -1,5 +1,19 @@
 # Changelog
 
+## quick-win hardening
+
+- test: the no-emoji check now sweeps the Makefile, both manifests, every
+  plugin SKILL.md, script, and scaffold template, not just four root docs,
+  using precise emoji Unicode ranges (so box-drawing, dashes, and curly
+  quotes are not false-flagged). A coverage guard keeps the sweep from
+  silently scanning nothing.
+- fix: journal.py derives the next entry number from the highest existing
+  same-day sequence, not the file count, so deleting an earlier entry no
+  longer causes the next write to overwrite a later one.
+- docs: dc-review and dc-plan now state that code-reviews and plan-reviews
+  use independent sequence numbers within the shared reviews/ directory,
+  matching the design-doc / ADR convention.
+
 ## workspace lifecycle integration test
 
 - test: added tests/test_lifecycle_integration.py, an end-to-end walk of a
