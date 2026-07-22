@@ -70,13 +70,15 @@ dev-commander/
     │   │   ├── debug/.gitkeep
     │   │   └── handoff/.gitkeep
     │   └── scaffold/              # used by /dc:scaffold
-    │       ├── Makefile.tmpl
-    │       ├── pyproject.toml.tmpl
-    │       ├── docker-compose.yml.tmpl
-    │       ├── README.md.tmpl
-    │       ├── CHANGELOG.md.tmpl
-    │       ├── TODO.md.tmpl
-    │       └── tests/test_smoke.py.tmpl
+    │       ├── common/            # stack-agnostic docs
+    │       │   ├── README.md.tmpl
+    │       │   ├── CHANGELOG.md.tmpl
+    │       │   └── TODO.md.tmpl
+    │       └── python/            # python stack
+    │           ├── Makefile.tmpl
+    │           ├── pyproject.toml.tmpl
+    │           ├── docker-compose.yml.tmpl
+    │           └── tests/test_smoke.py.tmpl
     └── skills/
         ├── dc-core/SKILL.md
         ├── dc-scaffold/SKILL.md

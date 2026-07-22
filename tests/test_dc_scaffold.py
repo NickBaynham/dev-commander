@@ -1,41 +1,53 @@
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parent.parent
-TEMPLATES = ROOT / "plugins" / "dev-commander" / "templates" / "scaffold"
-REQUIRED = [
-    "Makefile.tmpl", "pyproject.toml.tmpl", "docker-compose.yml.tmpl",
-    "README.md.tmpl", "CHANGELOG.md.tmpl", "TODO.md.tmpl",
-]
+SCAFFOLD = ROOT / "plugins" / "dev-commander" / "templates" / "scaffold"
+
+COMMON = ["README.md.tmpl", "CHANGELOG.md.tmpl", "TODO.md.tmpl"]
+
+# Tasks 13-14 append entries as their stack families ship.
+STACKS = {
+    "python": [
+        "Makefile.tmpl", "pyproject.toml.tmpl", "docker-compose.yml.tmpl",
+        "tests/test_smoke.py.tmpl",
+    ],
+}
 
 
-def test_all_templates_exist():
-    for name in REQUIRED:
-        assert (TEMPLATES / name).is_file(), f"missing {name}"
+def test_common_templates_exist():
+    for name in COMMON:
+        assert (SCAFFOLD / "common" / name).is_file(), f"missing common/{name}"
 
 
-def test_makefile_template_has_required_targets():
-    text = (TEMPLATES / "Makefile.tmpl").read_text()
+@pytest.mark.parametrize("stack", STACKS)
+def test_stack_family_complete(stack):
+    for name in STACKS[stack]:
+        assert (SCAFFOLD / stack / name).is_file(), f"missing {stack}/{name}"
+
+
+@pytest.mark.parametrize("stack", STACKS)
+def test_stack_makefile_has_required_targets(stack):
+    text = (SCAFFOLD / stack / "Makefile.tmpl").read_text()
     for target in ["install:", "lint:", "test:", "build:", "run:"]:
-        assert target in text, f"Makefile.tmpl missing {target}"
+        assert target in text, f"{stack}/Makefile.tmpl missing {target}"
 
 
-def test_pyproject_template_uses_pdm():
-    text = (TEMPLATES / "pyproject.toml.tmpl").read_text()
-    assert "pdm" in text
+def test_scaffold_root_has_only_family_dirs():
+    entries = {p.name for p in SCAFFOLD.iterdir()}
+    assert entries == {"common"} | set(STACKS)
+
+
+def test_python_pyproject_uses_pdm():
+    assert "pdm" in (SCAFFOLD / "python" / "pyproject.toml.tmpl").read_text()
 
 
 def test_templates_use_placeholders():
-    text = (TEMPLATES / "README.md.tmpl").read_text()
-    assert "{{project_name}}" in text
+    assert "{{project_name}}" in (SCAFFOLD / "common" / "README.md.tmpl").read_text()
 
 
 def test_skill_exists():
     skill = ROOT / "plugins" / "dev-commander" / "skills" / "dc-scaffold" / "SKILL.md"
     assert skill.is_file()
     assert "/dc:scaffold" in skill.read_text()
-
-
-def test_smoke_test_template_exists():
-    smoke = TEMPLATES / "tests" / "test_smoke.py.tmpl"
-    assert smoke.is_file()
-    assert "def test_" in smoke.read_text()

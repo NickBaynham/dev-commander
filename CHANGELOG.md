@@ -1,5 +1,14 @@
 # Changelog
 
+## Phase 9 — Multi-stack scaffold restructure
+
+- Reorganized scaffold templates into stack families under templates/scaffold/.
+- Introduced common/ subdirectory for stack-agnostic documentation (README, CHANGELOG, TODO).
+- Moved python stack files (Makefile, pyproject.toml, docker-compose.yml, test_smoke.py.tmpl) into python/ subdirectory.
+- Rewritten dc-scaffold SKILL.md to describe stack-family architecture and selection workflow.
+- New test suite (test_dc_scaffold.py) with parametrized tests for each stack family, enabling Tasks 13-14 to append node-ts and go families.
+- Updated v0.1 File Structure tree in planning/plan.md to document common/ and python/ layout.
+
 ## Phase 8 — dc-release skill
 
 - dc-release skill: /dc:release command for version release workflow.
