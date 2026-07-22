@@ -1,0 +1,12 @@
+package main
+
+import "fmt"
+
+// Greet returns a greeting for name.
+func Greet(name string) string {
+	return "{{project_name}} greets " + name
+}
+
+func main() {
+	fmt.Println(Greet("world"))
+}

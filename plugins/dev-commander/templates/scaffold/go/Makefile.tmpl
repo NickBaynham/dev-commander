@@ -1,0 +1,19 @@
+.PHONY: help install lint test build run
+
+help:
+	@echo "{{project_name}} - Make targets: install, lint, test, build, run"
+
+install:
+	go mod tidy
+
+lint:
+	go vet ./...
+
+test:
+	go test ./...
+
+build:
+	go build -o bin/{{project_name}} .
+
+run:
+	go run .

@@ -1,5 +1,12 @@
 # Changelog
 
+## Phase 11 — go scaffold family
+
+- Added go stack family with Go 1.23 toolchain.
+- Template files: Makefile, go.mod, main.go, main_test.go.
+- Updated test_dc_scaffold.py with parametrized go completeness tests.
+- Fresh scaffolds pass go vet and go test without manual editing.
+
 ## Phase 10 — node-ts scaffold family
 
 - Added node-ts stack family with TypeScript + vitest toolchain.

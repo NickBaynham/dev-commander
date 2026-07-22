@@ -1,0 +1,12 @@
+package main
+
+import (
+	"strings"
+	"testing"
+)
+
+func TestScaffoldIsHealthy(t *testing.T) {
+	if !strings.Contains(Greet("world"), "world") {
+		t.Fatal("greeting missing name")
+	}
+}
