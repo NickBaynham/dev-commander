@@ -1,5 +1,13 @@
 # Changelog
 
+## Phase 8 — dc-release skill
+
+- dc-release skill: /dc:release command for version release workflow.
+- Synchronizes version across pyproject.toml and package.json manifests.
+- Helper bump_version.py validates semantic versions and reports updated files.
+- Workflow: clean tree check, version determination, manifest sync, CHANGELOG update, verify, commit, tag, and journal.
+- Prevents version drift across manifests.
+
 ## v0.1.0 release fixes
 
 - Version bumped to 0.1.0 across manifests and pyproject.

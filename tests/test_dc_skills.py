@@ -13,6 +13,7 @@ EXPECTED = {
     "dc-review": ["/dc:review", "reviews/", "rubric"],
     "dc-debug": ["/dc:debug", "debug/", "root cause"],
     "dc-handoff": ["/dc:handoff-to-tc", "handoff/", "learn-from"],
+    "dc-release": ["/dc:release", "bump_version", "CHANGELOG"],
 }
 
 

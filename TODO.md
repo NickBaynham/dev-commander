@@ -2,7 +2,6 @@
 
 ## v0.2 (planned — see planning/plan.md, Tasks 11-18)
 
-- Phase 8: dc-release skill with bump_version helper.
 - Phase 9: multi-stack scaffold restructure (common and python families).
 - Phase 10: node-ts scaffold family.
 - Phase 11: go scaffold family.
