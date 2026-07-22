@@ -1599,6 +1599,7 @@ plugins/dev-commander/
 │       │   ├── Makefile.tmpl
 │       │   ├── package.json.tmpl
 │       │   ├── tsconfig.json.tmpl
+│       │   ├── tsconfig.build.json.tmpl
 │       │   ├── src/index.ts.tmpl
 │       │   └── tests/smoke.test.ts.tmpl
 │       └── go/                    # NEW (Task 14)
@@ -1956,6 +1957,7 @@ git commit -m "feat: multi-stack scaffold layout with common and python families
 - Create: `plugins/dev-commander/templates/scaffold/node-ts/Makefile.tmpl`
 - Create: `plugins/dev-commander/templates/scaffold/node-ts/package.json.tmpl`
 - Create: `plugins/dev-commander/templates/scaffold/node-ts/tsconfig.json.tmpl`
+- Create: `plugins/dev-commander/templates/scaffold/node-ts/tsconfig.build.json.tmpl`
 - Create: `plugins/dev-commander/templates/scaffold/node-ts/src/index.ts.tmpl`
 - Create: `plugins/dev-commander/templates/scaffold/node-ts/tests/smoke.test.ts.tmpl`
 - Modify: `tests/test_dc_scaffold.py` (append the node-ts entry to STACKS)
@@ -1971,7 +1973,7 @@ Append to `STACKS` in `tests/test_dc_scaffold.py`:
 ```python
     "node-ts": [
         "Makefile.tmpl", "package.json.tmpl", "tsconfig.json.tmpl",
-        "src/index.ts.tmpl", "tests/smoke.test.ts.tmpl",
+        "tsconfig.build.json.tmpl", "src/index.ts.tmpl", "tests/smoke.test.ts.tmpl",
     ],
 ```
 
@@ -2015,7 +2017,7 @@ run:
   "scripts": {
     "lint": "tsc --noEmit",
     "test": "vitest run",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "start": "node dist/index.js"
   },
   "devDependencies": {
@@ -2040,6 +2042,18 @@ run:
     "strict": true
   },
   "include": ["src", "tests"]
+}
+```
+
+`node-ts/tsconfig.build.json.tmpl`:
+
+```json
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "src"
+  },
+  "include": ["src"]
 }
 ```
 

@@ -15,7 +15,7 @@ STACKS = {
     ],
     "node-ts": [
         "Makefile.tmpl", "package.json.tmpl", "tsconfig.json.tmpl",
-        "src/index.ts.tmpl", "tests/smoke.test.ts.tmpl",
+        "tsconfig.build.json.tmpl", "src/index.ts.tmpl", "tests/smoke.test.ts.tmpl",
     ],
     "go": [
         "Makefile.tmpl", "go.mod.tmpl", "main.go.tmpl", "main_test.go.tmpl",
