@@ -12,7 +12,7 @@ the workspace. Plans are the contract dc-implement executes.
 
 1. Gather inputs: a feature request, user story, BRD, or reviewed
    requirements. If a business-requirements BRD exists, consume it
-   rather than re-deriving requirements.
+   rather than re-deriving requirements. If a design doc or ADR exists under `.dev-commander/design/`, consume it too.
 2. Write the plan to `.dev-commander/plans/NNNN-<slug>.md` where NNNN is
    the next zero-padded sequence number.
 3. Plan format:

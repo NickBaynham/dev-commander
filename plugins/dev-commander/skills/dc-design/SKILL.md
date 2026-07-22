@@ -27,7 +27,7 @@ features with architectural weight get a design doc or an ADR first.
 
 Record one architecture decision at
 `.dev-commander/design/adr-NNNN-<slug>.md`, where NNNN is the next
-zero-padded sequence number, with sections: Status (proposed,
+zero-padded sequence number in the adr- series, independent of the design-doc sequence, with sections: Status (proposed,
 accepted, superseded), Context, Decision, Consequences. One decision
 per record. ADRs are never deleted; a reversed decision gets a new
 ADR that names and supersedes the old one.

@@ -805,7 +805,7 @@ Run: `python3 <plugin-root>/scripts/init_workspace.py <project-root>`
 ### /dc:status
 
 Summarize the workspace: artifact counts for journal, plans, increments,
-reviews, debug, and handoff.
+reviews, debug, design, learning, and handoff.
 
 Run: `python3 <plugin-root>/scripts/status.py <project-root>`
 
@@ -1140,7 +1140,7 @@ the workspace. Plans are the contract dc-implement executes.
 
 1. Gather inputs: a feature request, user story, BRD, or reviewed
    requirements. If a business-requirements BRD exists, consume it
-   rather than re-deriving requirements.
+   rather than re-deriving requirements. If a design doc or ADR exists under `.dev-commander/design/`, consume it too.
 2. Write the plan to `.dev-commander/plans/NNNN-<slug>.md` where NNNN is
    the next zero-padded sequence number.
 3. Plan format:
@@ -1632,7 +1632,7 @@ Workspace layout after v0.2 (`.dev-commander/`): project.md plus `journal/`, `pl
 - Consumes: dc-core's journal helper (referenced by SKILL.md step 8).
 - Produces: CLI `bump_version.py <project-root> <version>` — updates the version field in pyproject.toml and package.json where present; prints one `updated <file>` line per file; exits 0 on success, 1 on invalid semver or when no version files were found.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `EXPECTED` in `tests/test_dc_skills.py`:
 
@@ -1684,12 +1684,12 @@ def test_fails_when_no_version_files(tmp_path):
     assert result.returncode == 1
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `pdm run pytest tests/test_dc_release.py "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-release]" -v`
 Expected: FAIL — bump_version.py and SKILL.md do not exist.
 
-- [ ] **Step 3: Write bump_version.py**
+- [x] **Step 3: Write bump_version.py**
 
 ```python
 """Bump the project version in pyproject.toml and package.json where present."""
@@ -1741,7 +1741,7 @@ if __name__ == "__main__":
     sys.exit(main())
 ```
 
-- [ ] **Step 4: Write dc-release SKILL.md**
+- [x] **Step 4: Write dc-release SKILL.md**
 
 ```markdown
 ---
@@ -1782,12 +1782,12 @@ described in dc-core.
 8. Journal the release with the dc-core journal helper.
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `pdm run pytest tests/test_dc_release.py "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-release]" -v && make verify`
 Expected: all pass; verifier clean.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 Update CHANGELOG.md (Phase 8 section at top) and TODO.md (remove the Phase 8 line) in the same commit.
 
@@ -1810,7 +1810,7 @@ git commit -m "feat: dc-release skill with bump_version helper (Phase 8)"
 - Consumes: the v0.1 flat template set (moved, contents unchanged).
 - Produces: the layout contract `templates/scaffold/common/` + `templates/scaffold/<stack>/` that Tasks 13-14 add families to, and the STACKS dict in tests/test_dc_scaffold.py they append to.
 
-- [ ] **Step 1: Rewrite the test file (failing first)**
+- [x] **Step 1: Rewrite the test file (failing first)**
 
 Replace `tests/test_dc_scaffold.py` entirely with:
 
@@ -1870,12 +1870,12 @@ def test_skill_exists():
     assert "/dc:scaffold" in skill.read_text()
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `pdm run pytest tests/test_dc_scaffold.py -v`
 Expected: FAIL — common/ and python/ directories do not exist yet.
 
-- [ ] **Step 3: Move the templates**
+- [x] **Step 3: Move the templates**
 
 ```bash
 cd plugins/dev-commander/templates/scaffold
@@ -1888,7 +1888,7 @@ cd -
 
 Template contents are unchanged — only locations move.
 
-- [ ] **Step 4: Rewrite dc-scaffold SKILL.md**
+- [x] **Step 4: Rewrite dc-scaffold SKILL.md**
 
 Replace `plugins/dev-commander/skills/dc-scaffold/SKILL.md` entirely with:
 
@@ -1930,16 +1930,16 @@ targets for install, lint, test, build, run; no emojis anywhere;
 README under 400 lines linking to CHANGELOG.md and TODO.md.
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `pdm run pytest tests/test_dc_scaffold.py -v && make verify`
 Expected: all pass; verifier clean.
 
-- [ ] **Step 6: Update this plan's v0.1 File Structure tree**
+- [x] **Step 6: Update this plan's v0.1 File Structure tree**
 
 In the v0.1 File Structure section, replace the flat `scaffold/` subtree with the family layout shown in the v0.2 File Structure section (common/, python/ only at this point).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Update CHANGELOG.md (Phase 9 section) and TODO.md (remove the Phase 9 line) in the same commit.
 
@@ -1964,7 +1964,7 @@ git commit -m "feat: multi-stack scaffold layout with common and python families
 - Consumes: the family layout and STACKS dict from Task 12.
 - Produces: a complete node-ts family whose fresh scaffold passes `npm install && make lint test`.
 
-- [ ] **Step 1: Add the node-ts case and verify it fails**
+- [x] **Step 1: Add the node-ts case and verify it fails**
 
 Append to `STACKS` in `tests/test_dc_scaffold.py`:
 
@@ -1978,7 +1978,7 @@ Append to `STACKS` in `tests/test_dc_scaffold.py`:
 Run: `pdm run pytest "tests/test_dc_scaffold.py::test_stack_family_complete[node-ts]" -v`
 Expected: FAIL — node-ts templates do not exist.
 
-- [ ] **Step 2: Write the templates**
+- [x] **Step 2: Write the templates**
 
 `node-ts/Makefile.tmpl`:
 
@@ -2062,17 +2062,17 @@ test("scaffold is healthy", () => {
 });
 ```
 
-- [ ] **Step 3: Run tests to verify they pass**
+- [x] **Step 3: Run tests to verify they pass**
 
 Run: `pdm run pytest tests/test_dc_scaffold.py -v && make verify`
 Expected: all pass (node-ts parametrized cases included); verifier clean.
 
-- [ ] **Step 4: Prove a fresh node-ts scaffold is healthy**
+- [x] **Step 4: Prove a fresh node-ts scaffold is healthy**
 
 In a scratch directory, copy the common and node-ts templates with `.tmpl` stripped (substituting `demo-app` for `{{project_name}}`), then run `npm install && make lint test`.
 Expected: lint (tsc) clean, 1 vitest test passes. Remove the scratch directory afterwards. If npm is unavailable in the environment, record that in the commit message body instead and note it for the reviewer.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Update CHANGELOG.md (Phase 10 section) and TODO.md (remove the Phase 10 line) in the same commit.
 
@@ -2096,7 +2096,7 @@ git commit -m "feat: node-ts scaffold family (Phase 10)"
 - Consumes: the family layout and STACKS dict from Task 12.
 - Produces: a complete go family whose fresh scaffold passes `make lint test`.
 
-- [ ] **Step 1: Add the go case and verify it fails**
+- [x] **Step 1: Add the go case and verify it fails**
 
 Append to `STACKS` in `tests/test_dc_scaffold.py`:
 
@@ -2109,7 +2109,7 @@ Append to `STACKS` in `tests/test_dc_scaffold.py`:
 Run: `pdm run pytest "tests/test_dc_scaffold.py::test_stack_family_complete[go]" -v`
 Expected: FAIL — go templates do not exist.
 
-- [ ] **Step 2: Write the templates**
+- [x] **Step 2: Write the templates**
 
 `go/Makefile.tmpl`:
 
@@ -2177,17 +2177,17 @@ func TestScaffoldIsHealthy(t *testing.T) {
 }
 ```
 
-- [ ] **Step 3: Run tests to verify they pass**
+- [x] **Step 3: Run tests to verify they pass**
 
 Run: `pdm run pytest tests/test_dc_scaffold.py -v && make verify`
 Expected: all pass (go parametrized cases included); verifier clean.
 
-- [ ] **Step 4: Prove a fresh go scaffold is healthy**
+- [x] **Step 4: Prove a fresh go scaffold is healthy**
 
 In a scratch directory, copy the common and go templates with `.tmpl` stripped (substituting `demo-app` for `{{project_name}}`), then run `make lint test`.
 Expected: go vet clean, 1 test passes. Remove the scratch directory afterwards. If the go toolchain is unavailable in the environment, record that in the commit message body instead and note it for the reviewer.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Update CHANGELOG.md (Phase 11 section) and TODO.md (remove the Phase 11 line) in the same commit.
 
@@ -2211,7 +2211,7 @@ git commit -m "feat: go scaffold family (Phase 11)"
 - Consumes: the workspace contract from Task 3; the EXPECTED dict from Task 5.
 - Produces: design docs at `.dev-commander/design/NNNN-<slug>.md` and ADRs at `.dev-commander/design/adr-NNNN-<slug>.md` that /dc:plan consumes as input.
 
-- [ ] **Step 1: Add the failing test cases**
+- [x] **Step 1: Add the failing test cases**
 
 Append to `EXPECTED` in `tests/test_dc_skills.py`:
 
@@ -2228,7 +2228,7 @@ DIRS = ["journal", "plans", "increments", "reviews", "debug", "design", "handoff
 Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-design]" tests/test_dc_core.py::test_init_creates_workspace -v`
 Expected: both FAIL — SKILL.md and the design/ template directory do not exist.
 
-- [ ] **Step 2: Implement**
+- [x] **Step 2: Implement**
 
 Create `plugins/dev-commander/templates/workspace/design/.gitkeep` (empty file).
 
@@ -2270,22 +2270,22 @@ features with architectural weight get a design doc or an ADR first.
 
 Record one architecture decision at
 `.dev-commander/design/adr-NNNN-<slug>.md`, where NNNN is the next
-zero-padded sequence number, with sections: Status (proposed,
+zero-padded sequence number in the adr- series, independent of the design-doc sequence, with sections: Status (proposed,
 accepted, superseded), Context, Decision, Consequences. One decision
 per record. ADRs are never deleted; a reversed decision gets a new
 ADR that names and supersedes the old one.
 ```
 
-- [ ] **Step 3: Run tests to verify they pass**
+- [x] **Step 3: Run tests to verify they pass**
 
 Run: `pdm run pytest tests/test_dc_core.py tests/test_dc_skills.py -v && make verify`
 Expected: all pass; verifier clean.
 
-- [ ] **Step 4: Update the workspace layout in this plan**
+- [x] **Step 4: Update the workspace layout in this plan**
 
 In both workspace-layout listings (v0.1 section and the v0.2 note above), confirm `design/` appears between `debug/` and `handoff/`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Update CHANGELOG.md (Phase 12 section) and TODO.md (remove the Phase 12 line) in the same commit.
 
@@ -2306,7 +2306,7 @@ git commit -m "feat: dc-design skill and design workspace directory (Phase 12)"
 - Consumes: plan filenames from dc-plan (`NNNN-<slug>.md`), increment records from dc-implement, review reports from dc-review.
 - Produces: branch naming convention `dc/NNNN-<slug>` matching the plan filename.
 
-- [ ] **Step 1: Add the dc-branch case and verify it fails**
+- [x] **Step 1: Add the dc-branch case and verify it fails**
 
 Append to `EXPECTED` in `tests/test_dc_skills.py`:
 
@@ -2317,7 +2317,7 @@ Append to `EXPECTED` in `tests/test_dc_skills.py`:
 Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-branch]" -v`
 Expected: FAIL — missing SKILL.md.
 
-- [ ] **Step 2: Write dc-branch SKILL.md**
+- [x] **Step 2: Write dc-branch SKILL.md**
 
 ```markdown
 ---
@@ -2352,12 +2352,12 @@ requests; the user decides when anything leaves the machine (DC9).
    is the user's decision in their review tool.
 ```
 
-- [ ] **Step 3: Run tests to verify they pass**
+- [x] **Step 3: Run tests to verify they pass**
 
 Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-branch]" -v && make verify`
 Expected: pass; verifier clean.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 Update CHANGELOG.md (Phase 13 section) and TODO.md (remove the Phase 13 line) in the same commit.
 
@@ -2381,7 +2381,7 @@ git commit -m "feat: dc-branch skill (Phase 13)"
 - Consumes: the workspace contract; dc-debug investigations and dc-review reports as lesson sources.
 - Produces: lesson files at `.dev-commander/learning/NNNN-<slug>.md` carrying a `Status:` line (candidate, accepted, rejected).
 
-- [ ] **Step 1: Add the failing test cases**
+- [x] **Step 1: Add the failing test cases**
 
 Append to `EXPECTED` in `tests/test_dc_skills.py`:
 
@@ -2401,7 +2401,7 @@ DIRS = [
 Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-learning]" tests/test_dc_core.py::test_init_creates_workspace -v`
 Expected: both FAIL — SKILL.md and the learning/ template directory do not exist.
 
-- [ ] **Step 2: Implement**
+- [x] **Step 2: Implement**
 
 Create `plugins/dev-commander/templates/workspace/learning/.gitkeep` (empty file).
 
@@ -2449,16 +2449,16 @@ guidance only when a human approves the promotion (DC10).
    reason in the lesson file.
 ```
 
-- [ ] **Step 3: Run tests to verify they pass**
+- [x] **Step 3: Run tests to verify they pass**
 
 Run: `pdm run pytest tests/test_dc_core.py tests/test_dc_skills.py -v && make verify`
 Expected: all pass; verifier clean.
 
-- [ ] **Step 4: Update the workspace layout in this plan**
+- [x] **Step 4: Update the workspace layout in this plan**
 
 In both workspace-layout listings, confirm `learning/` appears between `design/` and `handoff/`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Update CHANGELOG.md (Phase 14 section) and TODO.md (remove the Phase 14 line) in the same commit.
 
