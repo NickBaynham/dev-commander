@@ -2,7 +2,10 @@
 import sys
 from pathlib import Path
 
-DIRS = ["journal", "plans", "increments", "reviews", "debug", "design", "handoff"]
+DIRS = [
+    "journal", "plans", "increments", "reviews", "debug",
+    "design", "learning", "handoff",
+]
 
 
 def main() -> int:

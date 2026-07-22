@@ -1,5 +1,14 @@
 # Changelog
 
+## Phase 14 — dc-learning skill and learning workspace directory
+
+- dc-learning skill: /dc:learn and /dc:promote-lesson commands for governed lesson capture.
+- Lessons start as candidates under .dev-commander/learning/ and only modify project guidance with human approval (DC10).
+- /dc:learn captures lesson from debugging session, review, or release with sections: Status (candidate), Source, Lesson, Proposed guidance.
+- /dc:promote-lesson shows candidate and its proposed guidance; only with user approval applies the edit and promotes status to accepted.
+- Workspace initialized with learning/ directory template.
+- Updated DIRS constant in status.py and test_dc_core.py.
+
 ## Phase 13 — dc-branch skill and PR workflow
 
 - dc-branch skill: /dc:branch and /dc:pr commands for team-development workflow.

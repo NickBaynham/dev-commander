@@ -69,6 +69,7 @@ dev-commander/
     │   │   ├── reviews/.gitkeep
     │   │   ├── debug/.gitkeep
     │   │   ├── design/.gitkeep
+    │   │   ├── learning/.gitkeep
     │   │   └── handoff/.gitkeep
     │   └── scaffold/              # used by /dc:scaffold
     │       ├── common/            # stack-agnostic docs
@@ -102,6 +103,7 @@ Workspace layout created in a consuming project by `/dc:init`:
 ├── reviews/          # review reports from /dc:review
 ├── debug/            # root-cause investigation reports from /dc:debug
 ├── design/           # design docs and ADRs
+├── learning/         # candidate lessons for project guidance
 └── handoff/          # artifacts for Test Commander ingestion
 ```
 

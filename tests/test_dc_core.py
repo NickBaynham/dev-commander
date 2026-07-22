@@ -4,7 +4,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "plugins" / "dev-commander" / "scripts"
-DIRS = ["journal", "plans", "increments", "reviews", "debug", "design", "handoff"]
+DIRS = [
+    "journal", "plans", "increments", "reviews", "debug",
+    "design", "learning", "handoff",
+]
 
 
 def run(script, *args):
