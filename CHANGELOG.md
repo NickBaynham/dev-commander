@@ -1,5 +1,12 @@
 # Changelog
 
+## Phase 13 — dc-branch skill and PR workflow
+
+- dc-branch skill: /dc:branch and /dc:pr commands for team-development workflow.
+- /dc:branch creates and switches to branches named `dc/NNNN-<slug>` matching plan filename.
+- /dc:pr drafts pull request description from workspace artifacts (plan header, increment records, review reports).
+- User approval required before pushing branch or opening PR (DC9).
+
 ## Phase 12 — dc-design skill and design workspace directory
 
 - dc-design skill: /dc:design and /dc:adr commands for architecture design and decision records.

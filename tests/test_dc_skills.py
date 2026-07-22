@@ -15,6 +15,7 @@ EXPECTED = {
     "dc-design": ["/dc:design", "design/", "ADR"],
     "dc-handoff": ["/dc:handoff-to-tc", "handoff/", "learn-from"],
     "dc-release": ["/dc:release", "bump_version", "CHANGELOG"],
+    "dc-branch": ["/dc:branch", "/dc:pr", "increment records"],
 }
 
 
