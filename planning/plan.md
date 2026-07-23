@@ -3402,7 +3402,7 @@ Workspace layout after v0.4 (`.dev-commander/`): project.md plus `journal/`, `pl
 - Consumes: the workspace contract from Task 3.
 - Produces: `.dev-commander/deployments/` holding publish and deploy records as `NNNN-<slug>.md`, read by next_step (Task 30).
 
-- [ ] **Step 1: Update the DIRS constants (failing first)**
+- [x] **Step 1: Update the DIRS constants (failing first)**
 
 In `tests/test_dc_core.py`, change the DIRS constant to:
 
@@ -3425,7 +3425,7 @@ WORKSPACE_DIRS = [
 Run: `pdm run pytest tests/test_dc_core.py::test_init_creates_workspace -v`
 Expected: FAIL — the template does not create `deployments/` yet.
 
-- [ ] **Step 2: Create the template directory**
+- [x] **Step 2: Create the template directory**
 
 Create `plugins/dev-commander/templates/workspace/deployments/.gitkeep` (empty file).
 
@@ -3438,16 +3438,16 @@ DIRS = [
 ]
 ```
 
-- [ ] **Step 3: Run tests to verify they pass**
+- [x] **Step 3: Run tests to verify they pass**
 
 Run: `pdm run pytest tests/test_dc_core.py tests/test_lifecycle_integration.py -v && make verify`
 Expected: all pass; verifier clean.
 
-- [ ] **Step 4: Update the workspace layout in this plan**
+- [x] **Step 4: Update the workspace layout in this plan**
 
 Confirm `deployments/` appears last (after `handoff/`) in both workspace-layout listings in this file.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Add a Phase 22 section at the top of CHANGELOG.md in the same commit. TODO.md is not changed.
 
@@ -3470,7 +3470,7 @@ git commit -m "feat: deployments/ workspace directory (Phase 22)"
 - Consumes: the stack families from Task 12 (the Dockerfiles containerize what those scaffolds build).
 - Produces: `templates/docker/<stack>/Dockerfile.tmpl` that dc-publish (Task 27) generates into a project.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/test_dc_deploy.py`:
 
@@ -3501,7 +3501,7 @@ def test_dockerfile_has_from_and_uses_project_name(stack):
 Run: `pdm run pytest tests/test_dc_deploy.py -v`
 Expected: FAIL — the Dockerfile templates do not exist.
 
-- [ ] **Step 2: Write the templates**
+- [x] **Step 2: Write the templates**
 
 `plugins/dev-commander/templates/docker/python/Dockerfile.tmpl`:
 
@@ -3547,17 +3547,17 @@ COPY --from=build /out/{{project_name}} /{{project_name}}
 ENTRYPOINT ["/{{project_name}}"]
 ```
 
-- [ ] **Step 3: Run tests to verify they pass**
+- [x] **Step 3: Run tests to verify they pass**
 
 Run: `pdm run pytest tests/test_dc_deploy.py -v && make verify`
 Expected: all pass; verifier clean.
 
-- [ ] **Step 4: Prove each Dockerfile builds and runs**
+- [x] **Step 4: Prove each Dockerfile builds and runs**
 
 For each stack, materialize a fresh scaffold (common + stack templates with `.tmpl` stripped, substituting `demo-app` for `{{project_name}}` and `demo` for `{{project_description}}`) plus its Dockerfile (from `templates/docker/<stack>/Dockerfile.tmpl`, `.tmpl` stripped, `{{project_name}}` -> `demo-app`) into a scratch directory. Then run `docker build -t demo-app .` and `docker run --rm demo-app`.
 Expected: each image builds and the container runs and exits cleanly (python prints its message; go prints the greeting; node-ts loads `dist/index.js` and exits). Remove the scratch directories afterwards. If docker is unavailable in the environment, record that in the commit message body instead and note it for the reviewer.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Add a Phase 23 CHANGELOG section in the same commit.
 
@@ -3578,7 +3578,7 @@ git commit -m "feat: Dockerfile template family (Phase 23)"
 - Consumes: the Dockerfile templates from Task 26; the deployments/ directory from Task 25.
 - Produces: the image-reference convention `ghcr.io/{{repo_owner}}/{{project_name}}` and the build/push commands that the release workflow (Task 28) embeds.
 
-- [ ] **Step 1: Add the dc-publish case and verify it fails**
+- [x] **Step 1: Add the dc-publish case and verify it fails**
 
 Append to `EXPECTED` in `tests/test_dc_skills.py`:
 
@@ -3589,7 +3589,7 @@ Append to `EXPECTED` in `tests/test_dc_skills.py`:
 Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-publish]" -v`
 Expected: FAIL — missing SKILL.md.
 
-- [ ] **Step 2: Write dc-publish SKILL.md**
+- [x] **Step 2: Write dc-publish SKILL.md**
 
 ```markdown
 ---
@@ -3638,12 +3638,12 @@ dc-release cut.
    never crash.
 ```
 
-- [ ] **Step 3: Run tests to verify they pass**
+- [x] **Step 3: Run tests to verify they pass**
 
 Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-publish]" -v && make verify`
 Expected: pass; verifier clean.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 Add a Phase 24 CHANGELOG section in the same commit.
 
@@ -3665,7 +3665,7 @@ git commit -m "feat: dc-publish skill (Phase 24)"
 - Consumes: the image-reference convention from Task 27.
 - Produces: `docker-compose.prod.yml.tmpl` and `release.yml.tmpl` that dc-deploy (Task 29) generates and the release workflow uses.
 
-- [ ] **Step 1: Add the failing tests**
+- [x] **Step 1: Add the failing tests**
 
 Append to `tests/test_dc_deploy.py`:
 
@@ -3738,7 +3738,7 @@ def test_deploy_template_has_no_unsubstituted_placeholders(name):
 Run: `pdm run pytest tests/test_dc_deploy.py -v`
 Expected: FAIL — the deploy templates do not exist.
 
-- [ ] **Step 2: Write docker-compose.prod.yml.tmpl**
+- [x] **Step 2: Write docker-compose.prod.yml.tmpl**
 
 ```yaml
 services:
@@ -3749,7 +3749,7 @@ services:
       - "8080:8080"
 ```
 
-- [ ] **Step 3: Write release.yml.tmpl**
+- [x] **Step 3: Write release.yml.tmpl**
 
 ```yaml
 name: release
@@ -3792,12 +3792,12 @@ jobs:
             docker compose -f docker-compose.prod.yml up -d
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `pdm run pytest tests/test_dc_deploy.py -v && make verify`
 Expected: all pass; verifier clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Add a Phase 25 CHANGELOG section in the same commit.
 
@@ -3818,7 +3818,7 @@ git commit -m "feat: production compose and release workflow templates (Phase 25
 - Consumes: the image reference from Task 27; the compose and release-workflow templates from Task 28; the deployments/ directory from Task 25.
 - Produces: the deploy step the release workflow embeds.
 
-- [ ] **Step 1: Add the dc-deploy case and verify it fails**
+- [x] **Step 1: Add the dc-deploy case and verify it fails**
 
 Append to `EXPECTED` in `tests/test_dc_skills.py`:
 
@@ -3829,7 +3829,7 @@ Append to `EXPECTED` in `tests/test_dc_skills.py`:
 Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-deploy]" -v`
 Expected: FAIL — missing SKILL.md.
 
-- [ ] **Step 2: Write dc-deploy SKILL.md**
+- [x] **Step 2: Write dc-deploy SKILL.md**
 
 ```markdown
 ---
@@ -3876,12 +3876,12 @@ build one.
    stop; never crash.
 ```
 
-- [ ] **Step 3: Run tests to verify they pass**
+- [x] **Step 3: Run tests to verify they pass**
 
 Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-deploy]" -v && make verify`
 Expected: pass; verifier clean.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 Add a Phase 26 CHANGELOG section in the same commit.
 
@@ -3904,7 +3904,7 @@ git commit -m "feat: dc-deploy skill (Phase 26)"
 - Consumes: the deployments/ directory from Task 25; the ship commands from Tasks 27 and 29.
 - Produces: the completed lifecycle recommendation.
 
-- [ ] **Step 1: Update the affected tests (failing first)**
+- [x] **Step 1: Update the affected tests (failing first)**
 
 In `tests/test_dc_core.py`, replace `test_next_recommends_release_when_cycle_complete` with the two functions below (the existing test currently reaches "Cycle complete" straight after a scan; the ship state now sits between them):
 
@@ -3963,7 +3963,7 @@ In `tests/test_lifecycle_integration.py`, replace the tail from the scan step on
 Run: `pdm run pytest tests/test_dc_core.py::test_next_recommends_ship_when_no_deployment tests/test_lifecycle_integration.py -v`
 Expected: FAIL — next_step never recommends /dc:publish yet.
 
-- [ ] **Step 2: Add the deployments state to next_step.py**
+- [x] **Step 2: Add the deployments state to next_step.py**
 
 In `plugins/dev-commander/scripts/next_step.py`, replace the terminal return with a deployments check followed by the completion message:
 
@@ -3978,12 +3978,12 @@ In `plugins/dev-commander/scripts/next_step.py`, replace the terminal return wit
             "/dc:release for the next version.")
 ```
 
-- [ ] **Step 3: Run tests to verify they pass**
+- [x] **Step 3: Run tests to verify they pass**
 
 Run: `pdm run pytest tests/test_dc_core.py tests/test_lifecycle_integration.py -v && make verify`
 Expected: all pass; verifier clean.
 
-- [ ] **Step 4: Update the dc-core /dc:next description and its plan mirror**
+- [x] **Step 4: Update the dc-core /dc:next description and its plan mirror**
 
 In `plugins/dev-commander/skills/dc-core/SKILL.md`, replace the `/dc:next` description's tail so it names the ship state. Change the sentence ending:
 
@@ -4004,7 +4004,7 @@ exists the cycle is complete, so /dc:plan for the next feature.
 
 Apply the identical change to the `/dc:next` mirror inside `planning/plan.md` (Task 3's SKILL.md block), keeping the two byte-identical.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Add a Phase 27 CHANGELOG section in the same commit.
 
@@ -4028,7 +4028,7 @@ git commit -m "feat: next_step recommends the ship sequence before completion (P
 - Consumes: everything above; follows dc-release's process.
 - Produces: tagged v0.4.0 on origin/main; installed plugin at 0.4.0.
 
-- [ ] **Step 1: Update documentation**
+- [x] **Step 1: Update documentation**
 
 Add rows to the README command table:
 
@@ -4039,16 +4039,16 @@ Add rows to the README command table:
 
 In `docs/commands.md`, add a dc-publish section and a dc-deploy section mirroring the SKILL.md behavior. In `docs/lifecycle.md`, add Publish and Deploy rows to the phase table and add the deployments state to the `/dc:next` rules list. In `docs/workspace.md`, add `deployments/` to the layout tree and the directory table. In `AGENTS.md`, extend the identity paragraph to name dc-publish (container publishing) and dc-deploy (self-hosted deployment), and change "Decisions (DC1-DC14)" to "Decisions (DC1-DC18)".
 
-- [ ] **Step 2: Bump the version**
+- [x] **Step 2: Bump the version**
 
 Run: `python3 plugins/dev-commander/scripts/bump_version.py . 0.4.0`
 Then set `"version": "0.4.0"` in `.claude-plugin/marketplace.json` (plugins entry) and `plugins/dev-commander/.claude-plugin/plugin.json`. Confirm all three agree.
 
-- [ ] **Step 3: CHANGELOG and README status**
+- [x] **Step 3: CHANGELOG and README status**
 
 Add a `## v0.4.0` section at the top of CHANGELOG.md summarizing Phases 22-28. Set the README status line to: Phases 0-28 complete; v0.4.0 shipped.
 
-- [ ] **Step 4: Verify, validate, commit, tag, push**
+- [x] **Step 4: Verify, validate, commit, tag, push**
 
 Run: `make verify && claude plugin validate . && claude plugin validate plugins/dev-commander`
 Expected: all clean.
@@ -4060,11 +4060,11 @@ git tag -a v0.4.0 -m "release v0.4.0"
 git push --follow-tags
 ```
 
-- [ ] **Step 5: Check off the v0.4 checkboxes and record completion**
+- [x] **Step 5: Check off the v0.4 checkboxes and record completion**
 
 Check off every `- [ ] **Step` box in the v0.4 section (Tasks 25-31) and replace the "## v0.4 Completed" body with a list of Tasks 25-31, the date 2026-07-23, and their commit SHAs. Commit as `docs: v0.4 completion record`.
 
-- [ ] **Step 6: Refresh the installed plugin and smoke-test**
+- [x] **Step 6: Refresh the installed plugin and smoke-test**
 
 Run: `claude plugin uninstall dev-commander && claude plugin install dev-commander@dev-commander-marketplace`
 Confirm the installed cache contains dc-publish, dc-deploy, and the docker and deploy templates, and that a scratch-workspace `/dc:next` walk reaches the ship state.
@@ -4075,4 +4075,12 @@ Tracked in [TODO.md](../TODO.md).
 
 ## v0.4 Completed
 
-(Empty. Move task names here with dates as they ship.)
+All shipped 2026-07-23.
+
+- Task 25: deployments/ workspace directory (Phase 22) — `0031321`
+- Task 26: Dockerfile template family (Phase 23) — `edd5f5e`
+- Task 27: dc-publish skill (Phase 24) — `ac6a577`
+- Task 28: prod compose and release workflow templates (Phase 25) — `d1d1fdd`
+- Task 29: dc-deploy skill (Phase 26) — `1278e37`
+- Task 30: next_step ship state (Phase 27) — `9baa105`
+- Task 31: v0.4 docs and release (Phase 28) — `4485759`
