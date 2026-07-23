@@ -64,6 +64,16 @@ def test_release_workflow_has_build_push_and_deploy():
     assert "ssh-action" in text
 
 
+def test_compose_raw_template_is_valid_yaml():
+    doc = yaml.safe_load((DEPLOY / "docker-compose.prod.yml.tmpl").read_text())
+    assert "services" in doc
+
+
+def test_release_raw_template_is_valid_yaml():
+    doc = yaml.safe_load((DEPLOY / "release.yml.tmpl").read_text())
+    assert "jobs" in doc
+
+
 @pytest.mark.parametrize("name", ["docker-compose.prod.yml.tmpl", "release.yml.tmpl"])
 def test_deploy_template_has_no_unsubstituted_placeholders(name):
     text = _render(DEPLOY / name)
