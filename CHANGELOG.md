@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.4.1
+
+Patch release from the v0.4.0 whole-branch review: the generated release
+workflow now actually ships to the host.
+
+- fix: `release.yml` delivers `docker-compose.prod.yml` to the deploy host
+  with an scp step (creating the target directory), and the SSH deploy step
+  logs into GHCR on the host before pulling — so the tag-triggered CD path
+  works on a fresh host instead of assuming an undocumented manual setup.
+- fix: the image `:version` tag is normalized (`${GITHUB_REF_NAME#v}`) so CI
+  pushes `:0.4.0`, matching dc-publish's manifest version, not `:v0.4.0`.
+  Also added `docker/setup-buildx-action` for a robust builder.
+- docs: plugin.json and marketplace.json descriptions name container
+  publishing and self-hosted deployment; dc-deploy notes that /dc:publish
+  should run first so the tag-triggered build has a Dockerfile.
+
 ## v0.4.0
 
 Containerized publish and self-hosted deploy: dc-publish and dc-deploy join
