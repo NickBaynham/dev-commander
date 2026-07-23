@@ -6,8 +6,9 @@
   plugins/dev-commander/templates/docker/<stack>/Dockerfile.tmpl for python
   (3.12-slim base, pdm install), node-ts (22-slim base, npm install + build),
   and go (1.23 multi-stage, distroless runtime). These templates containerize
-  the scaffolded projects (from Phase 13) for dc-publish (Phase 24) to generate
-  into deployed projects. All three stacks build and run cleanly. Only
+  the scaffolded projects (the stack families from Phases 9-11) for dc-publish
+  (Phase 24) to generate into deployed projects. All three stacks build and run
+  cleanly. Only
   {{project_name}} is substituted; users customize entrypoints post-generation.
 - test: added tests/test_dc_deploy.py with parametrized tests that verify
   each Dockerfile template exists and contains FROM and {{project_name}}.
