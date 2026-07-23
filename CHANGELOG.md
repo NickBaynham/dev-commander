@@ -12,8 +12,8 @@
   Registry authentication comes from environment (docker login locally,
   GITHUB_TOKEN in CI); credentials are never stored or printed. Writes a
   publish record to .dev-commander/deployments/ and is the single source of
-  truth for the image reference and build/push commands that dc-release
-  (Task 28) will embed in the release workflow.
+  truth for the image reference and build/push commands that the release
+  workflow (Phase 25) will embed.
 - test: added dc-publish to EXPECTED in tests/test_dc_skills.py, verifying
   the skill has frontmatter name: dc-publish and required markers /dc:publish,
   ghcr, and Dockerfile.
