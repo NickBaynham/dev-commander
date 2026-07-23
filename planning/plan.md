@@ -3327,3 +3327,731 @@ All six tasks shipped 2026-07-22:
 - Task 22: dc-ci skill (ec6132f)
 - Task 23: next_step /dc:scan recommendation (db3b200, docs fix bff1ccd)
 - Task 24: v0.3 docs and release, dogfooding dc-release (93fbc19, tagged v0.3.0)
+
+---
+
+# v0.4 Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Extend Dev Commander past a tagged release into shipping running software: two skills that build and publish a container image (dc-publish) and deploy it to a self-hosted host over SSH (dc-deploy), plus a generated release workflow that automates build, push, and deploy on a version tag.
+
+**Architecture:** Two Markdown-only skills unified by one artifact — the container image. Only the Dockerfile is stack-specific; the production compose file and the release workflow are stack-agnostic because the Dockerfile encapsulates the stack. A new `deployments/` workspace directory records publish and deploy events. Templates ship in the plugin under `templates/docker/<stack>/` and `templates/deploy/`.
+
+**Tech Stack:** Unchanged — Claude Code plugin format, Python 3.12, pdm, pytest, ruff, Make, pyyaml (already a dev dependency). Generated artifacts target Docker, GHCR, and GitHub Actions.
+
+## v0.4 Global Constraints
+
+All prior Global Constraints still apply verbatim. Additions:
+
+- The container image is the deployment artifact. The image reference convention is `ghcr.io/{{repo_owner}}/{{project_name}}`, tagged `:latest` and `:<version>` (DC16).
+- The deploy target is a self-hosted Linux host running docker compose over SSH; vendor-neutral (DC17).
+- Neither dc-publish nor dc-deploy embeds a secret. Registry auth and SSH credentials come from the environment locally or GitHub Actions secrets in CI; they are referenced, never stored (DC18).
+- Both `docker-compose.prod.yml.tmpl` and `release.yml.tmpl` reference the exact image string `ghcr.io/{{repo_owner}}/{{project_name}}`, so publish, deploy, and the pipeline name the same artifact.
+- Only `{{project_name}}` and `{{repo_owner}}` are substituted in v0.4 templates. GitHub Actions `${{ ... }}` expressions are not template placeholders and must survive substitution.
+
+## v0.4 Decisions
+
+| # | Decision |
+| --- | --- |
+| DC15 | dc-publish and dc-deploy are Markdown-only, extending DC11. Their templates ship in the plugin; the agent runs docker, git, and ssh by following each SKILL.md. |
+| DC16 | The container image is the deployment artifact. GHCR (`ghcr.io/{{repo_owner}}/{{project_name}}`) is the default registry in v0.4, matching the GitHub-centric CI choice (DC12). Other registries are deferred. |
+| DC17 | The deploy target is a self-hosted Linux host running docker compose over SSH; vendor-neutral. PaaS and Kubernetes targets are deferred to a later target family. |
+| DC18 | Neither skill embeds secrets. Registry auth and SSH credentials come from the environment locally, or GitHub Actions secrets in CI; the skills reference them, never store them. |
+
+## v0.4 File Structure (additions)
+
+```
+plugins/dev-commander/
+├── templates/
+│   ├── workspace/
+│   │   └── deployments/.gitkeep     # NEW (Task 25)
+│   ├── docker/                      # NEW (Task 26)
+│   │   ├── python/Dockerfile.tmpl
+│   │   ├── node-ts/Dockerfile.tmpl
+│   │   └── go/Dockerfile.tmpl
+│   └── deploy/                      # NEW (Task 28)
+│       ├── docker-compose.prod.yml.tmpl
+│       └── release.yml.tmpl
+└── skills/
+    ├── dc-publish/SKILL.md          # NEW (Task 27)
+    └── dc-deploy/SKILL.md           # NEW (Task 29)
+
+tests/
+└── test_dc_deploy.py                # NEW (Task 26, extended in Task 28)
+```
+
+Workspace layout after v0.4 (`.dev-commander/`): project.md plus `journal/`, `plans/`, `increments/`, `reviews/`, `debug/`, `design/`, `learning/`, `security/`, `handoff/`, `deployments/`.
+
+---
+
+### Task 25: deployments/ workspace directory (Phase 22)
+
+**Files:**
+- Create: `plugins/dev-commander/templates/workspace/deployments/.gitkeep`
+- Modify: `plugins/dev-commander/scripts/status.py` (add "deployments" to DIRS)
+- Modify: `tests/test_dc_core.py` (add "deployments" to DIRS)
+- Modify: `tests/test_lifecycle_integration.py` (add "deployments" to WORKSPACE_DIRS)
+
+**Interfaces:**
+- Consumes: the workspace contract from Task 3.
+- Produces: `.dev-commander/deployments/` holding publish and deploy records as `NNNN-<slug>.md`, read by next_step (Task 30).
+
+- [ ] **Step 1: Update the DIRS constants (failing first)**
+
+In `tests/test_dc_core.py`, change the DIRS constant to:
+
+```python
+DIRS = [
+    "journal", "plans", "increments", "reviews", "debug",
+    "design", "learning", "security", "handoff", "deployments",
+]
+```
+
+In `tests/test_lifecycle_integration.py`, change WORKSPACE_DIRS identically:
+
+```python
+WORKSPACE_DIRS = [
+    "journal", "plans", "increments", "reviews", "debug",
+    "design", "learning", "security", "handoff", "deployments",
+]
+```
+
+Run: `pdm run pytest tests/test_dc_core.py::test_init_creates_workspace -v`
+Expected: FAIL — the template does not create `deployments/` yet.
+
+- [ ] **Step 2: Create the template directory**
+
+Create `plugins/dev-commander/templates/workspace/deployments/.gitkeep` (empty file).
+
+In `plugins/dev-commander/scripts/status.py`, change the DIRS constant to:
+
+```python
+DIRS = [
+    "journal", "plans", "increments", "reviews", "debug",
+    "design", "learning", "security", "handoff", "deployments",
+]
+```
+
+- [ ] **Step 3: Run tests to verify they pass**
+
+Run: `pdm run pytest tests/test_dc_core.py tests/test_lifecycle_integration.py -v && make verify`
+Expected: all pass; verifier clean.
+
+- [ ] **Step 4: Update the workspace layout in this plan**
+
+Confirm `deployments/` appears last (after `handoff/`) in both workspace-layout listings in this file.
+
+- [ ] **Step 5: Commit**
+
+Add a Phase 22 section at the top of CHANGELOG.md in the same commit. TODO.md is not changed.
+
+```bash
+git add -A
+git commit -m "feat: deployments/ workspace directory (Phase 22)"
+```
+
+---
+
+### Task 26: Dockerfile template family (Phase 23)
+
+**Files:**
+- Create: `plugins/dev-commander/templates/docker/python/Dockerfile.tmpl`
+- Create: `plugins/dev-commander/templates/docker/node-ts/Dockerfile.tmpl`
+- Create: `plugins/dev-commander/templates/docker/go/Dockerfile.tmpl`
+- Create: `tests/test_dc_deploy.py`
+
+**Interfaces:**
+- Consumes: the stack families from Task 12 (the Dockerfiles containerize what those scaffolds build).
+- Produces: `templates/docker/<stack>/Dockerfile.tmpl` that dc-publish (Task 27) generates into a project.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `tests/test_dc_deploy.py`:
+
+```python
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parent.parent
+PLUGIN = ROOT / "plugins" / "dev-commander"
+DOCKER = PLUGIN / "templates" / "docker"
+
+STACKS = ["python", "node-ts", "go"]
+
+
+@pytest.mark.parametrize("stack", STACKS)
+def test_dockerfile_template_exists(stack):
+    assert (DOCKER / stack / "Dockerfile.tmpl").is_file()
+
+
+@pytest.mark.parametrize("stack", STACKS)
+def test_dockerfile_has_from_and_uses_project_name(stack):
+    text = (DOCKER / stack / "Dockerfile.tmpl").read_text()
+    assert "FROM " in text
+    assert "{{project_name}}" in text
+```
+
+Run: `pdm run pytest tests/test_dc_deploy.py -v`
+Expected: FAIL — the Dockerfile templates do not exist.
+
+- [ ] **Step 2: Write the templates**
+
+`plugins/dev-commander/templates/docker/python/Dockerfile.tmpl`:
+
+```dockerfile
+# syntax=docker/dockerfile:1
+FROM python:3.12-slim
+WORKDIR /app
+RUN pip install --no-cache-dir pdm
+COPY pyproject.toml pdm.lock* ./
+RUN pdm install --prod --no-editable
+COPY . .
+# Replace with your app's entrypoint.
+CMD ["pdm", "run", "python", "-c", "print('{{project_name}} is running')"]
+```
+
+`plugins/dev-commander/templates/docker/node-ts/Dockerfile.tmpl`:
+
+```dockerfile
+# syntax=docker/dockerfile:1
+FROM node:22-slim
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm install
+COPY . .
+RUN npm run build
+# {{project_name}} entrypoint; replace if your build emits elsewhere.
+CMD ["node", "dist/index.js"]
+```
+
+`plugins/dev-commander/templates/docker/go/Dockerfile.tmpl`:
+
+```dockerfile
+# syntax=docker/dockerfile:1
+FROM golang:1.23 AS build
+WORKDIR /src
+COPY go.mod go.sum* ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 go build -o /out/{{project_name}} .
+
+FROM gcr.io/distroless/static-debian12
+COPY --from=build /out/{{project_name}} /{{project_name}}
+ENTRYPOINT ["/{{project_name}}"]
+```
+
+- [ ] **Step 3: Run tests to verify they pass**
+
+Run: `pdm run pytest tests/test_dc_deploy.py -v && make verify`
+Expected: all pass; verifier clean.
+
+- [ ] **Step 4: Prove each Dockerfile builds and runs**
+
+For each stack, materialize a fresh scaffold (common + stack templates with `.tmpl` stripped, substituting `demo-app` for `{{project_name}}` and `demo` for `{{project_description}}`) plus its Dockerfile (from `templates/docker/<stack>/Dockerfile.tmpl`, `.tmpl` stripped, `{{project_name}}` -> `demo-app`) into a scratch directory. Then run `docker build -t demo-app .` and `docker run --rm demo-app`.
+Expected: each image builds and the container runs and exits cleanly (python prints its message; go prints the greeting; node-ts loads `dist/index.js` and exits). Remove the scratch directories afterwards. If docker is unavailable in the environment, record that in the commit message body instead and note it for the reviewer.
+
+- [ ] **Step 5: Commit**
+
+Add a Phase 23 CHANGELOG section in the same commit.
+
+```bash
+git add -A
+git commit -m "feat: Dockerfile template family (Phase 23)"
+```
+
+---
+
+### Task 27: dc-publish skill (Phase 24)
+
+**Files:**
+- Create: `plugins/dev-commander/skills/dc-publish/SKILL.md`
+- Modify: `tests/test_dc_skills.py` (append the dc-publish entry to EXPECTED)
+
+**Interfaces:**
+- Consumes: the Dockerfile templates from Task 26; the deployments/ directory from Task 25.
+- Produces: the image-reference convention `ghcr.io/{{repo_owner}}/{{project_name}}` and the build/push commands that the release workflow (Task 28) embeds.
+
+- [ ] **Step 1: Add the dc-publish case and verify it fails**
+
+Append to `EXPECTED` in `tests/test_dc_skills.py`:
+
+```python
+    "dc-publish": ["/dc:publish", "ghcr", "Dockerfile"],
+```
+
+Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-publish]" -v`
+Expected: FAIL — missing SKILL.md.
+
+- [ ] **Step 2: Write dc-publish SKILL.md**
+
+```markdown
+---
+name: dc-publish
+description: Container image publishing for Dev Commander. Use when the user runs /dc:publish or asks to build and push a container image for a release. Generates a Dockerfile if the project lacks one, builds the image, and pushes it to GHCR. It supplies the build-and-push step the release workflow embeds.
+---
+
+# dc-publish
+
+Builds a container image for the project and pushes it to GHCR. The image
+is the deployment artifact dc-deploy ships. dc-publish is the single source
+of truth for the image reference and the build and push commands.
+
+## Stack detection
+
+Infer the stack from project files: `pyproject.toml` present means python,
+`package.json` means node-ts, `go.mod` means go. If none or more than one
+is present, ask the user which stack rather than guessing.
+
+## The image reference
+
+The image is `ghcr.io/<owner>/<project>`, where `<owner>` is the GitHub
+owner from the git remote and `<project>` is the project name. It is tagged
+`:latest` and `:<version>`, where `<version>` is the project's current
+version from its manifest (for example `pyproject.toml`), matching the tag
+dc-release cut.
+
+## /dc:publish
+
+1. Detect the stack.
+2. Ensure a Dockerfile exists. If none, generate one from
+   `templates/docker/<stack>/Dockerfile.tmpl` (relative to this plugin's
+   root, resolved as dc-core describes), substituting `{{project_name}}`.
+   Never overwrite an existing Dockerfile.
+3. Build the image and tag it `ghcr.io/<owner>/<project>:<version>` and
+   `:latest`.
+4. Push both tags to GHCR. Registry authentication comes from the
+   environment: `docker login ghcr.io` locally, or `GITHUB_TOKEN` in CI.
+   Never store or print a credential.
+5. Publishing assumes a clean, released tree; publish the version
+   dc-release tagged.
+6. Write a publish record to `.dev-commander/deployments/NNNN-<slug>.md`,
+   where NNNN is the next zero-padded sequence number: the image reference
+   and tags pushed, and the outcome.
+7. If docker or git is not available, report the missing tool and stop;
+   never crash.
+```
+
+- [ ] **Step 3: Run tests to verify they pass**
+
+Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-publish]" -v && make verify`
+Expected: pass; verifier clean.
+
+- [ ] **Step 4: Commit**
+
+Add a Phase 24 CHANGELOG section in the same commit.
+
+```bash
+git add -A
+git commit -m "feat: dc-publish skill (Phase 24)"
+```
+
+---
+
+### Task 28: prod compose and release workflow templates (Phase 25)
+
+**Files:**
+- Create: `plugins/dev-commander/templates/deploy/docker-compose.prod.yml.tmpl`
+- Create: `plugins/dev-commander/templates/deploy/release.yml.tmpl`
+- Modify: `tests/test_dc_deploy.py` (add compose, release-workflow, and cross-check tests)
+
+**Interfaces:**
+- Consumes: the image-reference convention from Task 27.
+- Produces: `docker-compose.prod.yml.tmpl` and `release.yml.tmpl` that dc-deploy (Task 29) generates and the release workflow uses.
+
+- [ ] **Step 1: Add the failing tests**
+
+Append to `tests/test_dc_deploy.py`:
+
+```python
+import yaml
+
+DEPLOY = PLUGIN / "templates" / "deploy"
+IMAGE_REF = "ghcr.io/{{repo_owner}}/{{project_name}}"
+
+
+def _render(path):
+    return path.read_text().replace(
+        "{{project_name}}", "demo-app"
+    ).replace("{{repo_owner}}", "demo-owner")
+
+
+def test_deploy_templates_exist():
+    assert (DEPLOY / "docker-compose.prod.yml.tmpl").is_file()
+    assert (DEPLOY / "release.yml.tmpl").is_file()
+
+
+def test_compose_references_the_image():
+    text = (DEPLOY / "docker-compose.prod.yml.tmpl").read_text()
+    assert IMAGE_REF in text
+
+
+def test_compose_is_valid_yaml():
+    doc = yaml.safe_load(_render(DEPLOY / "docker-compose.prod.yml.tmpl"))
+    assert "services" in doc
+
+
+def test_release_workflow_references_the_image():
+    text = (DEPLOY / "release.yml.tmpl").read_text()
+    assert IMAGE_REF in text
+
+
+def test_release_workflow_is_valid_yaml_and_triggers_on_tag():
+    doc = yaml.safe_load(_render(DEPLOY / "release.yml.tmpl"))
+    # PyYAML parses a bare `on:` key as the boolean True (YAML 1.1).
+    triggers = doc.get("on", doc.get(True))
+    assert "push" in triggers
+    assert "tags" in triggers["push"]
+
+
+def test_release_workflow_has_build_push_and_deploy():
+    text = (DEPLOY / "release.yml.tmpl").read_text()
+    assert "build-push-action" in text
+    assert "ssh-action" in text
+
+
+@pytest.mark.parametrize("name", ["docker-compose.prod.yml.tmpl", "release.yml.tmpl"])
+def test_deploy_template_has_no_unsubstituted_placeholders(name):
+    text = _render(DEPLOY / name)
+    # Our mustache placeholders are {{project_name}} and {{repo_owner}};
+    # GitHub Actions ${{ ... }} expressions are legitimate and must survive.
+    assert "{{project_name}}" not in text
+    assert "{{repo_owner}}" not in text
+```
+
+Run: `pdm run pytest tests/test_dc_deploy.py -v`
+Expected: FAIL — the deploy templates do not exist.
+
+- [ ] **Step 2: Write docker-compose.prod.yml.tmpl**
+
+```yaml
+services:
+  {{project_name}}:
+    image: ghcr.io/{{repo_owner}}/{{project_name}}:latest
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+```
+
+- [ ] **Step 3: Write release.yml.tmpl**
+
+```yaml
+name: release
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/{{repo_owner}}/{{project_name}}:latest
+            ghcr.io/{{repo_owner}}/{{project_name}}:${{ github.ref_name }}
+      - name: deploy over ssh
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd {{project_name}}
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d
+```
+
+- [ ] **Step 4: Run tests to verify they pass**
+
+Run: `pdm run pytest tests/test_dc_deploy.py -v && make verify`
+Expected: all pass; verifier clean.
+
+- [ ] **Step 5: Commit**
+
+Add a Phase 25 CHANGELOG section in the same commit.
+
+```bash
+git add -A
+git commit -m "feat: production compose and release workflow templates (Phase 25)"
+```
+
+---
+
+### Task 29: dc-deploy skill (Phase 26)
+
+**Files:**
+- Create: `plugins/dev-commander/skills/dc-deploy/SKILL.md`
+- Modify: `tests/test_dc_skills.py` (append the dc-deploy entry to EXPECTED)
+
+**Interfaces:**
+- Consumes: the image reference from Task 27; the compose and release-workflow templates from Task 28; the deployments/ directory from Task 25.
+- Produces: the deploy step the release workflow embeds.
+
+- [ ] **Step 1: Add the dc-deploy case and verify it fails**
+
+Append to `EXPECTED` in `tests/test_dc_skills.py`:
+
+```python
+    "dc-deploy": ["/dc:deploy", "docker compose", "ssh"],
+```
+
+Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-deploy]" -v`
+Expected: FAIL — missing SKILL.md.
+
+- [ ] **Step 2: Write dc-deploy SKILL.md**
+
+```markdown
+---
+name: dc-deploy
+description: Self-hosted deployment for Dev Commander. Use when the user runs /dc:deploy or asks to ship the published image to a server. Deploys the image dc-publish pushed to a Linux host over SSH with docker compose. It never embeds secrets and never guesses the host.
+---
+
+# dc-deploy
+
+Deploys the published container image to a self-hosted Linux host running
+docker compose over SSH. It ships the image dc-publish pushed; it does not
+build one.
+
+## /dc:deploy
+
+1. Ensure `docker-compose.prod.yml` exists. If none, generate it from
+   `templates/deploy/docker-compose.prod.yml.tmpl` (relative to this
+   plugin's root, resolved as dc-core describes), substituting
+   `{{project_name}}` and `{{repo_owner}}` (the GitHub owner from the git
+   remote), so it references `ghcr.io/<owner>/<project>:latest`. Never
+   overwrite an existing file.
+2. Establish the target: read the host and SSH user from a Deployment
+   section in the workspace `project.md`. If the host is not configured
+   there, ask the user and offer to record it in `project.md`. Never guess.
+3. Deploy: over SSH, ensure the compose file is present on the host, then
+   run `docker compose -f docker-compose.prod.yml pull` and
+   `docker compose -f docker-compose.prod.yml up -d`.
+4. SSH credentials and registry auth come from the environment locally, or
+   GitHub Actions secrets (`DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`)
+   in CI. Reference them; never embed or store a secret.
+5. Write a deploy record to `.dev-commander/deployments/NNNN-<slug>.md`,
+   where NNNN is the next zero-padded sequence number: the image deployed
+   and the host it went to, and the outcome.
+6. For automation, dc-deploy supplies the deploy step embedded in the
+   release workflow generated from `templates/deploy/release.yml.tmpl`,
+   which builds, pushes, and deploys on a version tag.
+7. If docker, git, or ssh is not available, report the missing tool and
+   stop; never crash.
+```
+
+- [ ] **Step 3: Run tests to verify they pass**
+
+Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-deploy]" -v && make verify`
+Expected: pass; verifier clean.
+
+- [ ] **Step 4: Commit**
+
+Add a Phase 26 CHANGELOG section in the same commit.
+
+```bash
+git add -A
+git commit -m "feat: dc-deploy skill (Phase 26)"
+```
+
+---
+
+### Task 30: next_step ship state (Phase 27)
+
+**Files:**
+- Modify: `plugins/dev-commander/scripts/next_step.py`
+- Modify: `tests/test_dc_core.py`
+- Modify: `tests/test_lifecycle_integration.py`
+- Modify: `plugins/dev-commander/skills/dc-core/SKILL.md` (the /dc:next description)
+
+**Interfaces:**
+- Consumes: the deployments/ directory from Task 25; the ship commands from Tasks 27 and 29.
+- Produces: the completed lifecycle recommendation.
+
+- [ ] **Step 1: Update the affected tests (failing first)**
+
+In `tests/test_dc_core.py`, replace `test_next_recommends_release_when_cycle_complete` with the two functions below (the existing test currently reaches "Cycle complete" straight after a scan; the ship state now sits between them):
+
+```python
+def test_next_recommends_ship_when_no_deployment(tmp_path):
+    run("init_workspace.py", tmp_path)
+    ws = tmp_path / ".dev-commander"
+    _reviewed_plan(ws)
+    (ws / "handoff" / "0001-example").mkdir()
+    (ws / "handoff" / "0001-example" / "summary.md").write_text("# summary\n")
+    (ws / "learning" / "0001-lesson.md").write_text("Status: candidate\n")
+    (ws / "security" / "0001-scan.md").write_text("verdict: clean\n")
+    result = run("next_step.py", tmp_path)
+    assert "/dc:publish" in result.stdout
+    assert "/dc:deploy" in result.stdout
+
+
+def test_next_recommends_complete_when_deployed(tmp_path):
+    run("init_workspace.py", tmp_path)
+    ws = tmp_path / ".dev-commander"
+    _reviewed_plan(ws)
+    (ws / "handoff" / "0001-example").mkdir()
+    (ws / "handoff" / "0001-example" / "summary.md").write_text("# summary\n")
+    (ws / "learning" / "0001-lesson.md").write_text("Status: candidate\n")
+    (ws / "security" / "0001-scan.md").write_text("verdict: clean\n")
+    (ws / "deployments" / "0001-ship.md").write_text("deployed\n")
+    result = run("next_step.py", tmp_path)
+    assert "Cycle complete" in result.stdout
+```
+
+In `tests/test_lifecycle_integration.py`, replace the tail from the scan step onward (the block that currently writes the security report and asserts "Cycle complete") with:
+
+```python
+    # scan (dc-secscan): a security report leaves the ship step.
+    (ws / "security" / "0001-scan.md").write_text("verdict: clean\n")
+    assert "/dc:publish" in run("next_step.py", tmp_path).stdout
+
+    # ship (dc-publish + dc-deploy): a deployment record completes the cycle.
+    (ws / "deployments" / "0001-ship.md").write_text("deployed\n")
+    final = run("next_step.py", tmp_path)
+    assert "Cycle complete" in final.stdout
+
+    # journal (dc-core): an entry is written and counted.
+    assert run("journal.py", tmp_path, "Shipped the feature").returncode == 0
+    end = run("status.py", tmp_path)
+    assert "journal: 1" in end.stdout
+    assert "plans: 1" in end.stdout
+    assert "increments: 1" in end.stdout
+    # reviews counts both the code review and the plan-review file.
+    assert "reviews: 2" in end.stdout
+    assert "learning: 1" in end.stdout
+    assert "security: 1" in end.stdout
+    assert "deployments: 1" in end.stdout
+```
+
+Run: `pdm run pytest tests/test_dc_core.py::test_next_recommends_ship_when_no_deployment tests/test_lifecycle_integration.py -v`
+Expected: FAIL — next_step never recommends /dc:publish yet.
+
+- [ ] **Step 2: Add the deployments state to next_step.py**
+
+In `plugins/dev-commander/scripts/next_step.py`, replace the terminal return with a deployments check followed by the completion message:
+
+```python
+    if not list((ws / "security").glob("*.md")):
+        return ("Lessons captured. Run /dc:scan for a security scan (and "
+                "/dc:ci to set up the CI pipeline) before cutting a release.")
+    if not list((ws / "deployments").glob("*.md")):
+        return ("Scanned. Run /dc:release to tag the version, then /dc:publish "
+                "to build and push the image and /dc:deploy to ship it.")
+    return ("Cycle complete. Run /dc:plan to start the next feature, or "
+            "/dc:release for the next version.")
+```
+
+- [ ] **Step 3: Run tests to verify they pass**
+
+Run: `pdm run pytest tests/test_dc_core.py tests/test_lifecycle_integration.py -v && make verify`
+Expected: all pass; verifier clean.
+
+- [ ] **Step 4: Update the dc-core /dc:next description and its plan mirror**
+
+In `plugins/dev-commander/skills/dc-core/SKILL.md`, replace the `/dc:next` description's tail so it names the ship state. Change the sentence ending:
+
+```
+no security scan report yet means /dc:scan (and /dc:ci to set up
+the CI pipeline); and once lessons and a scan exist the cycle is complete,
+so /dc:release or /dc:plan for the next feature.
+```
+
+to:
+
+```
+no security scan report yet means /dc:scan (and /dc:ci to set up
+the CI pipeline); no deployment record yet means /dc:release then
+/dc:publish and /dc:deploy to ship the image; and once a deployment
+exists the cycle is complete, so /dc:plan for the next feature.
+```
+
+Apply the identical change to the `/dc:next` mirror inside `planning/plan.md` (Task 3's SKILL.md block), keeping the two byte-identical.
+
+- [ ] **Step 5: Commit**
+
+Add a Phase 27 CHANGELOG section in the same commit.
+
+```bash
+git add -A
+git commit -m "feat: next_step recommends the ship sequence before completion (Phase 27)"
+```
+
+---
+
+### Task 31: v0.4 docs and release (Phase 28)
+
+**Files:**
+- Modify: `README.md` (command table, status line)
+- Modify: `docs/commands.md`, `docs/lifecycle.md`, `docs/workspace.md`
+- Modify: `AGENTS.md` (identity prose, decisions range)
+- Modify: `pyproject.toml`, `.claude-plugin/marketplace.json`, `plugins/dev-commander/.claude-plugin/plugin.json` (version 0.4.0)
+- Modify: `CHANGELOG.md`
+
+**Interfaces:**
+- Consumes: everything above; follows dc-release's process.
+- Produces: tagged v0.4.0 on origin/main; installed plugin at 0.4.0.
+
+- [ ] **Step 1: Update documentation**
+
+Add rows to the README command table:
+
+```
+| /dc:publish | dc-publish | Build and push a container image to GHCR |
+| /dc:deploy | dc-deploy | Deploy the published image to a host over SSH |
+```
+
+In `docs/commands.md`, add a dc-publish section and a dc-deploy section mirroring the SKILL.md behavior. In `docs/lifecycle.md`, add Publish and Deploy rows to the phase table and add the deployments state to the `/dc:next` rules list. In `docs/workspace.md`, add `deployments/` to the layout tree and the directory table. In `AGENTS.md`, extend the identity paragraph to name dc-publish (container publishing) and dc-deploy (self-hosted deployment), and change "Decisions (DC1-DC14)" to "Decisions (DC1-DC18)".
+
+- [ ] **Step 2: Bump the version**
+
+Run: `python3 plugins/dev-commander/scripts/bump_version.py . 0.4.0`
+Then set `"version": "0.4.0"` in `.claude-plugin/marketplace.json` (plugins entry) and `plugins/dev-commander/.claude-plugin/plugin.json`. Confirm all three agree.
+
+- [ ] **Step 3: CHANGELOG and README status**
+
+Add a `## v0.4.0` section at the top of CHANGELOG.md summarizing Phases 22-28. Set the README status line to: Phases 0-28 complete; v0.4.0 shipped.
+
+- [ ] **Step 4: Verify, validate, commit, tag, push**
+
+Run: `make verify && claude plugin validate . && claude plugin validate plugins/dev-commander`
+Expected: all clean.
+
+```bash
+git add -A
+git commit -m "chore: release v0.4.0"
+git tag -a v0.4.0 -m "release v0.4.0"
+git push --follow-tags
+```
+
+- [ ] **Step 5: Check off the v0.4 checkboxes and record completion**
+
+Check off every `- [ ] **Step` box in the v0.4 section (Tasks 25-31) and replace the "## v0.4 Completed" body with a list of Tasks 25-31, the date 2026-07-23, and their commit SHAs. Commit as `docs: v0.4 completion record`.
+
+- [ ] **Step 6: Refresh the installed plugin and smoke-test**
+
+Run: `claude plugin uninstall dev-commander && claude plugin install dev-commander@dev-commander-marketplace`
+Confirm the installed cache contains dc-publish, dc-deploy, and the docker and deploy templates, and that a scratch-workspace `/dc:next` walk reaches the ship state.
+
+## v0.4 To Do
+
+Tracked in [TODO.md](../TODO.md).
+
+## v0.4 Completed
+
+(Empty. Move task names here with dates as they ship.)
