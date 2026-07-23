@@ -1,5 +1,24 @@
 # Changelog
 
+## Phase 26: dc-deploy skill
+
+- feat: added dc-deploy skill (Markdown-only) implementing /dc:deploy, which
+  deploys the published container image to a self-hosted Linux host over SSH
+  with docker compose. It ensures docker-compose.prod.yml exists by generating
+  it from templates/deploy/docker-compose.prod.yml.tmpl (Phase 25) if absent,
+  referencing ghcr.io/<owner>/<project>:latest. It reads the deployment host
+  and SSH user from a Deployment section in the workspace project.md, asking
+  the user to provide and record the host if not configured there (never
+  guessing). It deploys by pushing the compose file over SSH, then running
+  docker compose pull and up -d. SSH credentials and registry auth are
+  referenced from the environment (locally) or GitHub Actions secrets
+  (DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY in CI); never stored in the
+  template. It writes deploy records to .dev-commander/deployments/NNNN-<slug>.md
+  and supplies the deploy step the release workflow (Phase 25) embeds.
+- test: added dc-deploy to EXPECTED in tests/test_dc_skills.py, verifying
+  the skill has frontmatter name: dc-deploy and required markers /dc:deploy,
+  docker compose, and ssh.
+
 ## Phase 25: production compose and release workflow templates
 
 - feat: added docker-compose.prod.yml.tmpl under templates/deploy/, which

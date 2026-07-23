@@ -20,6 +20,7 @@ EXPECTED = {
     "dc-secscan": ["/dc:scan", "security/", "gitleaks"],
     "dc-ci": ["/dc:ci", ".github/workflows", "ci.yml"],
     "dc-publish": ["/dc:publish", "ghcr", "Dockerfile"],
+    "dc-deploy": ["/dc:deploy", "docker compose", "ssh"],
 }
 
 
