@@ -37,6 +37,9 @@ build one.
    overwrite an existing `.github/workflows/release.yml`. The workflow
    builds and pushes the image (dc-publish's step) and runs this deploy
    step on a `v*` tag; the deploy secrets DEPLOY_HOST, DEPLOY_USER, and
-   DEPLOY_SSH_KEY come from the repository's GitHub Actions secrets.
+   DEPLOY_SSH_KEY come from the repository's GitHub Actions secrets. The
+   release workflow builds from the Dockerfile dc-publish generates, so
+   run /dc:publish first (or ensure a Dockerfile exists) before relying
+   on the tag-triggered build.
 7. If docker, git, or ssh is not available, report the missing tool and
    stop; never crash.

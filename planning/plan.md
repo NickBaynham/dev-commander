@@ -3726,6 +3726,24 @@ def test_release_raw_template_is_valid_yaml():
     assert "jobs" in doc
 
 
+def test_release_workflow_delivers_compose_to_host():
+    text = (DEPLOY / "release.yml.tmpl").read_text()
+    assert "scp-action" in text
+
+
+def test_release_workflow_normalizes_the_version_tag():
+    # The image :version tag strips the leading v so it matches dc-publish's
+    # manifest version (0.4.0, not v0.4.0).
+    text = (DEPLOY / "release.yml.tmpl").read_text()
+    assert "GITHUB_REF_NAME#v" in text
+
+
+def test_release_workflow_preserves_github_expressions():
+    # GitHub Actions ${{ ... }} expressions must survive template rendering.
+    text = _render(DEPLOY / "release.yml.tmpl")
+    assert "${{ secrets.GITHUB_TOKEN }}" in text
+
+
 @pytest.mark.parametrize("name", ["docker-compose.prod.yml.tmpl", "release.yml.tmpl"])
 def test_deploy_template_has_no_unsubstituted_placeholders(name):
     text = _render(DEPLOY / name)
@@ -3766,6 +3784,11 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
+      - name: derive image version
+        id: ver
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - name: set up buildx
+        uses: docker/setup-buildx-action@v3
       - name: log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -3779,7 +3802,15 @@ jobs:
           push: true
           tags: |
             ghcr.io/{{repo_owner}}/{{project_name}}:latest
-            ghcr.io/{{repo_owner}}/{{project_name}}:${{ github.ref_name }}
+            ghcr.io/{{repo_owner}}/{{project_name}}:${{ steps.ver.outputs.version }}
+      - name: copy compose file to host
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source: docker-compose.prod.yml
+          target: "{{project_name}}"
       - name: deploy over ssh
         uses: appleboy/ssh-action@v1
         with:
@@ -3788,6 +3819,7 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
             cd {{project_name}}
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d
 ```
@@ -3871,7 +3903,10 @@ build one.
    overwrite an existing `.github/workflows/release.yml`. The workflow
    builds and pushes the image (dc-publish's step) and runs this deploy
    step on a `v*` tag; the deploy secrets DEPLOY_HOST, DEPLOY_USER, and
-   DEPLOY_SSH_KEY come from the repository's GitHub Actions secrets.
+   DEPLOY_SSH_KEY come from the repository's GitHub Actions secrets. The
+   release workflow builds from the Dockerfile dc-publish generates, so
+   run /dc:publish first (or ensure a Dockerfile exists) before relying
+   on the tag-triggered build.
 7. If docker, git, or ssh is not available, report the missing tool and
    stop; never crash.
 ```

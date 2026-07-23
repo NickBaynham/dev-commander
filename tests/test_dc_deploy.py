@@ -74,6 +74,24 @@ def test_release_raw_template_is_valid_yaml():
     assert "jobs" in doc
 
 
+def test_release_workflow_delivers_compose_to_host():
+    text = (DEPLOY / "release.yml.tmpl").read_text()
+    assert "scp-action" in text
+
+
+def test_release_workflow_normalizes_the_version_tag():
+    # The image :version tag strips the leading v so it matches dc-publish's
+    # manifest version (0.4.0, not v0.4.0).
+    text = (DEPLOY / "release.yml.tmpl").read_text()
+    assert "GITHUB_REF_NAME#v" in text
+
+
+def test_release_workflow_preserves_github_expressions():
+    # GitHub Actions ${{ ... }} expressions must survive template rendering.
+    text = _render(DEPLOY / "release.yml.tmpl")
+    assert "${{ secrets.GITHUB_TOKEN }}" in text
+
+
 @pytest.mark.parametrize("name", ["docker-compose.prod.yml.tmpl", "release.yml.tmpl"])
 def test_deploy_template_has_no_unsubstituted_placeholders(name):
     text = _render(DEPLOY / name)
