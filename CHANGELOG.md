@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.3.2
+
+Documentation release.
+
+- docs: added a quick start guide to the README.
+- docs: added user guides under docs/ (getting started, the development
+  lifecycle, command reference, and workspace reference), linked from the
+  README and AGENTS.md.
+- fix: the /dc:status description now names the security directory (added in
+  v0.3), correcting a stale SKILL.md and plan mirror.
+
 ## v0.3.1
 
 Patch release from the v0.3.0 whole-branch review: the generated CI gate is
