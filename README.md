@@ -5,7 +5,7 @@ Dev Commander guides a project through scaffold, plan, implement, review,
 debug, and handoff to [Test Commander](https://github.com/NickBaynham/test-commander)
 via a `/dc:*` command family.
 
-Status: Phases 0-21 complete; v0.3.3 shipped.
+Status: Phases 0-21 complete; [v0.3.3](https://github.com/NickBaynham/dev-commander/releases/latest) shipped.
 
 ## Install
 
@@ -88,5 +88,6 @@ Fuller guides live under [docs/](docs/README.md):
 [command reference](docs/commands.md), and
 [workspace reference](docs/workspace.md).
 
+Release history: [GitHub releases](https://github.com/NickBaynham/dev-commander/releases).
 Authoritative spec: [planning/plan.md](planning/plan.md).
 Agent orientation: [AGENTS.md](AGENTS.md).
