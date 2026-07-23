@@ -1,6 +1,6 @@
 {
   "name": "dev-commander",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "An AI-assisted software development agent. Skills span workspace orchestration, multi-stack project scaffolding, architecture design, incremental implementation planning, test-first implementation, rubric-driven code review, root-cause debugging, branch and PR workflow, release management, governed lesson capture, security scanning, CI pipeline generation, and handoff to Test Commander.",
   "author": {
     "name": "Nick Baynham",

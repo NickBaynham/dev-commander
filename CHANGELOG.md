@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.3
+
+- feat: bootstrap.sh prerequisite verifier (see below), wired as
+  `make bootstrap` and restored to the install steps.
+
 ## bootstrap prerequisite verifier
 
 - feat: added bootstrap.sh, an idempotent prerequisite verifier that checks
