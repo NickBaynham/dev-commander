@@ -11,6 +11,41 @@ Status: Phases 0-21 complete; v0.3.1 shipped.
 
     make install
 
+This registers the local marketplace and installs the plugin into Claude
+Code at user scope, so the `/dc:*` commands are available in any project.
+
+## Quick start
+
+Run these `/dc:*` commands inside Claude Code, from the project you want
+Dev Commander to drive.
+
+1. **Initialize a workspace.** In your project, run `/dc:init`. It creates a
+   committed `.dev-commander/` directory that tracks plans, reviews, design
+   notes, security scans, and a decision journal.
+2. **Starting fresh?** Run `/dc:scaffold` to generate a python, node-ts, or
+   go project with Make targets (install, lint, test, build, run), a smoke
+   test, and standard docs — a fresh scaffold passes `make lint test build`
+   with no manual editing.
+3. **Not sure what's next?** Run `/dc:next` at any point. It reads the
+   workspace state and names the next command in the lifecycle.
+
+A typical feature cycle, in order:
+
+    /dc:design      # optional: a design doc or ADR for weighty work
+    /dc:plan        # turn requirements into small, test-first increments
+    /dc:branch      # isolate the work on a dc/NNNN-<slug> branch
+    /dc:implement   # execute one increment at a time, failing test first
+    /dc:review      # rubric-driven code review of the increment
+    /dc:scan        # check dependencies and secrets before shipping
+    /dc:ci          # generate a GitHub Actions PR gate
+    /dc:pr          # draft a pull request from the workspace artifacts
+    /dc:release     # bump the version, update CHANGELOG, tag
+    /dc:handoff-to-tc  # package what shipped for Test Commander
+    /dc:learn       # capture a lesson for next time
+
+Every command writes its artifacts under `.dev-commander/`, and `/dc:next`
+threads them together — you never have to remember the order.
+
 ## Commands
 
 | Command | Skill | Purpose |
