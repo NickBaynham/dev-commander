@@ -13,8 +13,10 @@
   docker compose pull and up -d. SSH credentials and registry auth are
   referenced from the environment (locally) or GitHub Actions secrets
   (DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY in CI); never stored in the
-  template. It writes deploy records to .dev-commander/deployments/NNNN-<slug>.md
-  and supplies the deploy step the release workflow (Phase 25) embeds.
+  template. It writes deploy records to .dev-commander/deployments/NNNN-<slug>.md.
+  To automate the ship on a version tag, it generates
+  .github/workflows/release.yml from templates/deploy/release.yml.tmpl (Phase
+  25) if absent, which builds, pushes, and deploys on a v* tag.
 - test: added dc-deploy to EXPECTED in tests/test_dc_skills.py, verifying
   the skill has frontmatter name: dc-deploy and required markers /dc:deploy,
   docker compose, and ssh.
