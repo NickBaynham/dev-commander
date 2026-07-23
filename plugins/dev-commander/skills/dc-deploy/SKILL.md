@@ -29,8 +29,14 @@ build one.
 5. Write a deploy record to `.dev-commander/deployments/NNNN-<slug>.md`,
    where NNNN is the next zero-padded sequence number: the image deployed
    and the host it went to, and the outcome.
-6. For automation, dc-deploy supplies the deploy step embedded in the
-   release workflow generated from `templates/deploy/release.yml.tmpl`,
-   which builds, pushes, and deploys on a version tag.
+6. To automate the ship on a version tag, generate
+   `.github/workflows/release.yml` from
+   `templates/deploy/release.yml.tmpl` (relative to this plugin's root,
+   resolved as dc-core describes), substituting `{{project_name}}` and
+   `{{repo_owner}}` (the GitHub owner from the git remote). Never
+   overwrite an existing `.github/workflows/release.yml`. The workflow
+   builds and pushes the image (dc-publish's step) and runs this deploy
+   step on a `v*` tag; the deploy secrets DEPLOY_HOST, DEPLOY_USER, and
+   DEPLOY_SSH_KEY come from the repository's GitHub Actions secrets.
 7. If docker, git, or ssh is not available, report the missing tool and
    stop; never crash.
