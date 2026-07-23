@@ -23,8 +23,11 @@ def recommend(ws: Path) -> str:
     if not list((ws / "security").glob("*.md")):
         return ("Lessons captured. Run /dc:scan for a security scan (and "
                 "/dc:ci to set up the CI pipeline) before cutting a release.")
-    return ("Cycle complete. Run /dc:release to cut a version, or /dc:plan to "
-            "start the next feature.")
+    if not list((ws / "deployments").glob("*.md")):
+        return ("Scanned. Run /dc:release to tag the version, then /dc:publish "
+                "to build and push the image and /dc:deploy to ship it.")
+    return ("Cycle complete. Run /dc:plan to start the next feature, or "
+            "/dc:release for the next version.")
 
 
 def main() -> int:

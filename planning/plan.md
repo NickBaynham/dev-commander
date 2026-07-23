@@ -764,8 +764,11 @@ def recommend(ws: Path) -> str:
     if not list((ws / "security").glob("*.md")):
         return ("Lessons captured. Run /dc:scan for a security scan (and "
                 "/dc:ci to set up the CI pipeline) before cutting a release.")
-    return ("Cycle complete. Run /dc:release to cut a version, or /dc:plan to "
-            "start the next feature.")
+    if not list((ws / "deployments").glob("*.md")):
+        return ("Scanned. Run /dc:release to tag the version, then /dc:publish "
+                "to build and push the image and /dc:deploy to ship it.")
+    return ("Cycle complete. Run /dc:plan to start the next feature, or "
+            "/dc:release for the next version.")
 
 
 def main() -> int:
@@ -785,7 +788,7 @@ if __name__ == "__main__":
 The recommender reads only workspace state (no git calls); the /dc:branch
 and /dc:pr suggestions are advice within the implement and handoff states,
 not gates. Extended post-v0.2 from the original four-state chain to walk the
-full lifecycle (design, branch, handoff/pr, learn, scan, release).
+full lifecycle (design, branch, handoff/pr, learn, scan, release, ship).
 
 - [x] **Step 8: Run tests to verify they pass**
 
@@ -849,8 +852,9 @@ checkboxes in any plan means /dc:implement (with /dc:branch to isolate the
 work); fewer reviews than plans means /dc:review; no handoff bundle yet
 means /dc:handoff-to-tc or /dc:pr; a bundle with no lessons captured means
 /dc:learn; no security scan report yet means /dc:scan (and /dc:ci to set up
-the CI pipeline); and once lessons and a scan exist the cycle is complete,
-so /dc:release or /dc:plan for the next feature.
+the CI pipeline); no deployment record yet means /dc:release then
+/dc:publish and /dc:deploy to ship the image; and once a deployment
+exists the cycle is complete, so /dc:plan for the next feature.
 
 Run: `python3 <plugin-root>/scripts/next_step.py <project-root>`
 ```

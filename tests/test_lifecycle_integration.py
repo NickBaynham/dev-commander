@@ -77,11 +77,14 @@ def test_full_lifecycle(tmp_path):
     (ws / "learning" / "0001-lesson.md").write_text("Status: candidate\n")
     assert "/dc:scan" in run("next_step.py", tmp_path).stdout
 
-    # scan (dc-secscan): a security report completes the cycle.
+    # scan (dc-secscan): a security report leaves the ship step.
     (ws / "security" / "0001-scan.md").write_text("verdict: clean\n")
+    assert "/dc:publish" in run("next_step.py", tmp_path).stdout
+
+    # ship (dc-publish + dc-deploy): a deployment record completes the cycle.
+    (ws / "deployments" / "0001-ship.md").write_text("deployed\n")
     final = run("next_step.py", tmp_path)
     assert "Cycle complete" in final.stdout
-    assert "/dc:release" in final.stdout
 
     # journal (dc-core): an entry is written and counted.
     assert run("journal.py", tmp_path, "Shipped the feature").returncode == 0
@@ -93,3 +96,4 @@ def test_full_lifecycle(tmp_path):
     assert "reviews: 2" in end.stdout
     assert "learning: 1" in end.stdout
     assert "security: 1" in end.stdout
+    assert "deployments: 1" in end.stdout

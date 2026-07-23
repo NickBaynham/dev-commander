@@ -139,7 +139,7 @@ def test_next_recommends_scan_when_no_security_report(tmp_path):
     assert "/dc:scan" in result.stdout
 
 
-def test_next_recommends_release_when_cycle_complete(tmp_path):
+def test_next_recommends_ship_when_no_deployment(tmp_path):
     run("init_workspace.py", tmp_path)
     ws = tmp_path / ".dev-commander"
     _reviewed_plan(ws)
@@ -148,5 +148,18 @@ def test_next_recommends_release_when_cycle_complete(tmp_path):
     (ws / "learning" / "0001-lesson.md").write_text("Status: candidate\n")
     (ws / "security" / "0001-scan.md").write_text("verdict: clean\n")
     result = run("next_step.py", tmp_path)
+    assert "/dc:publish" in result.stdout
+    assert "/dc:deploy" in result.stdout
+
+
+def test_next_recommends_complete_when_deployed(tmp_path):
+    run("init_workspace.py", tmp_path)
+    ws = tmp_path / ".dev-commander"
+    _reviewed_plan(ws)
+    (ws / "handoff" / "0001-example").mkdir()
+    (ws / "handoff" / "0001-example" / "summary.md").write_text("# summary\n")
+    (ws / "learning" / "0001-lesson.md").write_text("Status: candidate\n")
+    (ws / "security" / "0001-scan.md").write_text("verdict: clean\n")
+    (ws / "deployments" / "0001-ship.md").write_text("deployed\n")
+    result = run("next_step.py", tmp_path)
     assert "Cycle complete" in result.stdout
-    assert "/dc:release" in result.stdout

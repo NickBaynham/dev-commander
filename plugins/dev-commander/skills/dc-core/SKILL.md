@@ -52,7 +52,8 @@ checkboxes in any plan means /dc:implement (with /dc:branch to isolate the
 work); fewer reviews than plans means /dc:review; no handoff bundle yet
 means /dc:handoff-to-tc or /dc:pr; a bundle with no lessons captured means
 /dc:learn; no security scan report yet means /dc:scan (and /dc:ci to set up
-the CI pipeline); and once lessons and a scan exist the cycle is complete,
-so /dc:release or /dc:plan for the next feature.
+the CI pipeline); no deployment record yet means /dc:release then
+/dc:publish and /dc:deploy to ship the image; and once a deployment
+exists the cycle is complete, so /dc:plan for the next feature.
 
 Run: `python3 <plugin-root>/scripts/next_step.py <project-root>`

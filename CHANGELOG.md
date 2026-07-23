@@ -1,5 +1,19 @@
 # Changelog
 
+## Phase 27: next_step ship state
+
+- feat: next_step.py now checks for deployment records before recommending
+  cycle completion. When lessons, a security scan, and a deployment record
+  all exist, the cycle is complete; when any are missing, next_step recommends
+  the corresponding command. The new deployments state (between scan and
+  completion) recommends the ship sequence: /dc:release then /dc:publish and
+  /dc:deploy. Updated the /dc:next SKILL.md description to name the ship state.
+- test: updated test_next_recommends_release_when_cycle_complete to two new
+  tests: test_next_recommends_ship_when_no_deployment (verifies the ship state)
+  and test_next_recommends_complete_when_deployed (verifies completion when
+  deployments exist). Extended test_lifecycle_integration.py to verify the
+  full lifecycle route through the ship state and final completion.
+
 ## Phase 26: dc-deploy skill
 
 - feat: added dc-deploy skill (Markdown-only) implementing /dc:deploy, which
