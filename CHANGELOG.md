@@ -1,5 +1,11 @@
 # Changelog
 
+## Phase 22: deployments/ workspace directory
+
+- feat: added deployments/ as a tenth workspace directory, inserted after
+  handoff/, to hold publish and deploy records (NNNN-<slug>.md) read by
+  next_step in Phase 30 (v0.4 container publishing and deployment).
+
 ## v0.3.3
 
 - feat: bootstrap.sh prerequisite verifier (see below), wired as

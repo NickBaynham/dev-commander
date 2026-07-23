@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "plugins" / "dev-commander" / "scripts"
 WORKSPACE_DIRS = [
     "journal", "plans", "increments", "reviews", "debug",
-    "design", "learning", "security", "handoff",
+    "design", "learning", "security", "handoff", "deployments",
 ]
 
 
