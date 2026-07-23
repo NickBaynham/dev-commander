@@ -107,7 +107,8 @@ Workspace layout created in a consuming project by `/dc:init`:
 ├── design/           # design docs and ADRs
 ├── learning/         # candidate lessons for project guidance
 ├── security/         # security scan reports (NNNN-<slug>.md)
-└── handoff/          # artifacts for Test Commander ingestion
+├── handoff/          # artifacts for Test Commander ingestion
+└── deployments/      # publish and deploy records (NNNN-<slug>.md)
 ```
 
 ---
