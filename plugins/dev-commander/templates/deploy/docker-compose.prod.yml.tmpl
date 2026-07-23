@@ -1,0 +1,6 @@
+services:
+  {{project_name}}:
+    image: ghcr.io/{{repo_owner}}/{{project_name}}:latest
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
