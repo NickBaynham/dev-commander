@@ -16,9 +16,12 @@ workspace to a tagged release.
 
 From a clone of this repository:
 
+    ./bootstrap.sh   # verify prerequisites; checks only, installs nothing
     make install
 
-This validates the plugin manifests, registers the local marketplace, and
+`bootstrap.sh` confirms python3 (3.12+), pdm, git, and the Claude Code CLI
+are present, reporting an install hint for anything missing. `make install`
+then validates the plugin manifests, registers the local marketplace, and
 installs the plugin into Claude Code at user scope. The `/dc:*` commands are
 then available in any project you open in Claude Code.
 

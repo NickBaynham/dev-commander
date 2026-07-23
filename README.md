@@ -9,10 +9,13 @@ Status: Phases 0-21 complete; v0.3.2 shipped.
 
 ## Install
 
+    ./bootstrap.sh   # verify prerequisites (python3, pdm, git, claude)
     make install
 
-This registers the local marketplace and installs the plugin into Claude
-Code at user scope, so the `/dc:*` commands are available in any project.
+`bootstrap.sh` only checks that the required tools are present; it never
+installs anything. `make install` registers the local marketplace and
+installs the plugin into Claude Code at user scope, so the `/dc:*` commands
+are available in any project.
 
 ## Quick start
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## bootstrap prerequisite verifier
+
+- feat: added bootstrap.sh, an idempotent prerequisite verifier that checks
+  python3 (3.12+), pdm, git, and the Claude Code CLI are present before
+  `make install`, reporting an install hint for anything missing. It checks
+  only; it never installs. Wired as `make bootstrap`, covered by
+  tests/test_bootstrap.py, and restored to the README install steps (the
+  v0.1 review had removed the reference because the script did not exist).
+
 ## v0.3.2
 
 Documentation release.

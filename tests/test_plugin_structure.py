@@ -39,7 +39,7 @@ def _scanned_files():
     files = [
         ROOT / n for n in [
             "README.md", "CHANGELOG.md", "TODO.md", "AGENTS.md", "CLAUDE.md",
-            "Makefile", "pyproject.toml",
+            "Makefile", "pyproject.toml", "bootstrap.sh",
         ]
     ]
     files.append(ROOT / ".claude-plugin" / "marketplace.json")

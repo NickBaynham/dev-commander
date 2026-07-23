@@ -42,6 +42,7 @@ dev-commander/
 ├── CHANGELOG.md                   # phase-by-phase shipping log
 ├── TODO.md                        # features not yet added
 ├── README.md                      # user-facing overview, < 400 lines
+├── bootstrap.sh                   # post-v0.3: prerequisite verifier (checks only)
 ├── Makefile                       # install / lint / test / build / run / verify
 ├── pyproject.toml                 # pdm project, dev deps: ruff, pytest
 ├── planning/plan.md               # this file — authoritative spec

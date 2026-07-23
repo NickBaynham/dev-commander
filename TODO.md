@@ -2,4 +2,4 @@
 
 ## Later
 
-- Later: bootstrap.sh prerequisite verifier, docs/ user guides.
+(No open items. New work starts with a brainstorm and a plan.)

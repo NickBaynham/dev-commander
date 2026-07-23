@@ -1,9 +1,10 @@
-.PHONY: help install uninstall lint test build run verify \
+.PHONY: help bootstrap install uninstall lint test build run verify \
         pdm-install validate-manifests marketplace-add plugin-install
 
 help:
 	@echo "Dev Commander - Make targets"
 	@echo ""
+	@echo "  make bootstrap   Verify prerequisites (python3, pdm, git, claude). Checks only."
 	@echo "  make install     Install Python deps, validate manifests, register the local"
 	@echo "                   marketplace, and install the plugin. Idempotent."
 	@echo "  make uninstall   Remove the plugin and unregister the marketplace."
@@ -12,6 +13,9 @@ help:
 	@echo "  make build       Placeholder; no build artifacts."
 	@echo "  make run         Placeholder; no runtime."
 	@echo "  make verify      Run lint, test, and the skill verifier."
+
+bootstrap:
+	sh bootstrap.sh
 
 install: pdm-install validate-manifests marketplace-add plugin-install
 
