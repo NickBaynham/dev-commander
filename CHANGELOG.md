@@ -1,5 +1,23 @@
 # Changelog
 
+## Phase 24: dc-publish skill
+
+- feat: added dc-publish skill (Markdown-only) implementing /dc:publish, which
+  builds and pushes container images to GHCR (ghcr.io/<owner>/<project>).
+  Detects project stack (python, node-ts, or go) from project files
+  (pyproject.toml, package.json, go.mod), generates a Dockerfile from
+  templates/docker/<stack>/Dockerfile.tmpl if none exists (Phases 9-11
+  scaffolding + Phase 23 templates), builds with tags :latest and :<version>
+  (from project manifest, matching dc-release tag), and pushes both tags.
+  Registry authentication comes from environment (docker login locally,
+  GITHUB_TOKEN in CI); credentials are never stored or printed. Writes a
+  publish record to .dev-commander/deployments/ and is the single source of
+  truth for the image reference and build/push commands that dc-release
+  (Task 28) will embed in the release workflow.
+- test: added dc-publish to EXPECTED in tests/test_dc_skills.py, verifying
+  the skill has frontmatter name: dc-publish and required markers /dc:publish,
+  ghcr, and Dockerfile.
+
 ## Phase 23: Dockerfile template family
 
 - feat: added Dockerfile template family under
