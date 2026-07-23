@@ -34,6 +34,8 @@ are optional per feature; the core spine is plan → implement → review.
 | CI | `/dc:ci` | `.github/workflows/ci.yml`. |
 | Pull request | `/dc:pr` | A drafted PR (pushed only on your approval). |
 | Release | `/dc:release` | A version bump, changelog section, and tag. |
+| Publish | `/dc:publish` | A container image built and pushed to GHCR; a record under `deployments/`. |
+| Deploy | `/dc:deploy` | The published image deployed to a self-hosted host over SSH; a record under `deployments/`. |
 | Handoff | `/dc:handoff-to-tc` | A bundle under `handoff/` for Test Commander. |
 | Learn | `/dc:learn`, `/dc:promote-lesson` | A candidate lesson under `learning/`. |
 
@@ -55,8 +57,9 @@ recommends the next command by walking these rules in order:
 5. A bundle exists but no lessons captured → `/dc:learn`.
 6. No security scan report yet → `/dc:scan` (and `/dc:ci` to set up the
    pipeline).
-7. Otherwise the cycle is complete → `/dc:release`, or `/dc:plan` for the
-   next feature.
+7. No deployment record yet → `/dc:release`, then `/dc:publish` and
+   `/dc:deploy` to ship.
+8. Otherwise the cycle is complete → `/dc:plan` for the next feature.
 
 Because the recommendation is derived from files on disk, it survives across
 sessions and is always accurate to what has actually been done. `/dc:ci` is

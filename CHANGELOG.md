@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.4.0
+
+Containerized publish and self-hosted deploy: dc-publish and dc-deploy join
+the lifecycle after release, so a version can be built into a container
+image, pushed to GHCR, and shipped to a self-hosted host without leaving
+Dev Commander.
+
+- Phase 22: added `deployments/` as a tenth workspace directory, holding
+  publish and deploy records.
+- Phase 23: added a Dockerfile template family (python, node-ts, go) under
+  `templates/docker/`.
+- Phase 24: added the dc-publish skill (`/dc:publish`), which detects the
+  project's stack, generates a Dockerfile if needed, and builds and pushes
+  a container image to GHCR tagged `:latest` and `:<version>`.
+- Phase 25: added `docker-compose.prod.yml.tmpl` and `release.yml.tmpl`
+  templates under `templates/deploy/` for running the published image and
+  automating build/push/deploy on a version tag.
+- Phase 26: added the dc-deploy skill (`/dc:deploy`), which deploys the
+  published image to a self-hosted Linux host over SSH with docker
+  compose, reading the target from the workspace `project.md` and never
+  guessing or storing secrets.
+- Phase 27: next_step now recommends the ship sequence (`/dc:publish` then
+  `/dc:deploy`) once a release is cut and before the cycle is considered
+  complete.
+- Phase 28: v0.4.0 documentation and release.
+
 ## Phase 27: next_step ship state
 
 - feat: next_step.py now checks for deployment records before recommending

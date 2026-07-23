@@ -101,6 +101,32 @@ scan runs the official gitleaks GitHub Action (the same engine as the local
 | --- | --- |
 | `/dc:release` | From a clean, verified tree: bump the version across manifests with the `bump_version` helper, add a changelog section, verify, commit as `chore: release v<version>`, and create an annotated tag. Asks before pushing. |
 
+## dc-publish — container image publishing
+
+| Command | Purpose |
+| --- | --- |
+| `/dc:publish` | Detect the project's stack, generate a Dockerfile from `templates/docker/<stack>/Dockerfile.tmpl` if none exists, build the image, and push it to GHCR (`ghcr.io/<owner>/<project>`) tagged `:latest` and `:<version>`. |
+
+Registry authentication comes from the environment (`docker login ghcr.io`
+locally, `GITHUB_TOKEN` in CI); dc-publish never stores or prints a
+credential. It writes a publish record to `.dev-commander/deployments/` and
+is the single source of truth for the image reference that the release
+workflow embeds.
+
+## dc-deploy — self-hosted deployment
+
+| Command | Purpose |
+| --- | --- |
+| `/dc:deploy` | Deploy the image dc-publish pushed to a self-hosted Linux host over SSH with docker compose, generating `docker-compose.prod.yml` from a template if none exists. |
+
+Reads the deployment host and SSH user from a Deployment section in the
+workspace `project.md`, asking (and offering to record) rather than
+guessing if it is missing. SSH credentials and registry auth come from the
+environment locally, or `DEPLOY_HOST`, `DEPLOY_USER`, and `DEPLOY_SSH_KEY`
+GitHub Actions secrets in CI; never embedded or stored. It also generates
+`.github/workflows/release.yml` to automate the ship (build, push, deploy)
+on a `v*` tag, and writes a deploy record to `.dev-commander/deployments/`.
+
 ## dc-learning — governed lesson capture
 
 | Command | Purpose |

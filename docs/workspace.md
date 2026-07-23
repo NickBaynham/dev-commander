@@ -17,7 +17,8 @@ reviews, and decisions travel with its history.
 ├── design/         # design docs and ADRs from /dc:design
 ├── learning/       # candidate and promoted lessons from /dc:learn
 ├── security/       # security scan reports from /dc:scan
-└── handoff/        # bundles for Test Commander from /dc:handoff-to-tc
+├── handoff/        # bundles for Test Commander from /dc:handoff-to-tc
+└── deployments/    # publish and deploy records from /dc:publish, /dc:deploy
 ```
 
 `/dc:status` prints the artifact count in each of these directories.
@@ -35,6 +36,7 @@ reviews, and decisions travel with its history.
 | `learning/` | `/dc:learn`, `/dc:promote-lesson` | Lessons carrying a `Status:` line (candidate, accepted, rejected). |
 | `security/` | `/dc:scan` | Scan reports listing findings by severity and a verdict. |
 | `handoff/` | `/dc:handoff-to-tc` | Bundle directories (`NNNN-<slug>/`) for Test Commander. |
+| `deployments/` | `/dc:publish`, `/dc:deploy` | Publish and deploy records (`NNNN-<slug>.md`): image reference, tags, and target host. |
 
 `project.md` is a single file at the workspace root describing the project's
 identity, stack, and constraints.
