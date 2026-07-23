@@ -33,7 +33,7 @@ Run: `python3 <plugin-root>/scripts/init_workspace.py <project-root>`
 ### /dc:status
 
 Summarize the workspace: artifact counts for journal, plans, increments,
-reviews, debug, design, learning, and handoff.
+reviews, debug, design, learning, security, and handoff.
 
 Run: `python3 <plugin-root>/scripts/status.py <project-root>`
 

@@ -77,5 +77,13 @@ threads them together — you never have to remember the order.
     make test    # pytest
     make verify  # lint + test + skill verifier
 
+## Documentation
+
+Fuller guides live under [docs/](docs/README.md):
+[getting started](docs/getting-started.md),
+[the development lifecycle](docs/lifecycle.md),
+[command reference](docs/commands.md), and
+[workspace reference](docs/workspace.md).
+
 Authoritative spec: [planning/plan.md](planning/plan.md).
 Agent orientation: [AGENTS.md](AGENTS.md).

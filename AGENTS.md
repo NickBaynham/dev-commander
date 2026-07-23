@@ -16,6 +16,7 @@ Dev Commander is an AI-assisted software development agent, shipped as a Claude 
 | [CHANGELOG.md](CHANGELOG.md) | Phase-by-phase shipping log. Newest changes at the top within each phase section. |
 | [TODO.md](TODO.md) | Features not yet added or under construction. |
 | [README.md](README.md) | User-facing overview. Status line names the most recent completed phase. |
+| [docs/](docs/README.md) | User guides: getting started, the development lifecycle, command reference, and workspace reference. |
 | plugins/dev-commander/skills/ | Each shipped skill's SKILL.md is Claude's runtime entry point. |
 
 **Start here every session:** open [planning/plan.md](planning/plan.md) and read (1) the Decisions table, (2) the Global Constraints, (3) the first task with unchecked `- [ ]` boxes — that is the current work item. Execute tasks in order; each task ends with tests passing and a commit.
