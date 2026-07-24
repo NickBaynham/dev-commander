@@ -6,6 +6,15 @@ Restructuring deploy into a target family to support multiple deployment
 platforms. The first task moves the existing SSH deploy templates into
 `templates/deploy/ssh/` to create the family structure.
 
+- Phase 31: generalized dc-deploy into a multi-target skill. The SKILL.md now
+  reads a `target:` key from the Deployment section of project.md (ssh or fly),
+  branching the config generation and deploy mechanism by target. It generates
+  docker-compose.prod.yml or fly.toml depending on target, and deploys via SSH
+  compose or flyctl accordingly. Both targets read their respective credentials
+  from the environment (DEPLOY_HOST/DEPLOY_USER/DEPLOY_SSH_KEY for SSH,
+  FLY_API_TOKEN for Fly), never embedding or storing secrets. Release workflow
+  generation now selects the appropriate release.yml.tmpl per target. Never
+  guesses the target; never proceeds with an unsupported value.
 - Phase 30: added the Fly.io deploy target. Created `templates/deploy/fly/fly.toml.tmpl`,
   a Fly.io app configuration file that references the same image as SSH
   (ghcr.io/{{repo_owner}}/{{project_name}}:latest). Created `templates/deploy/fly/release.yml.tmpl`,
