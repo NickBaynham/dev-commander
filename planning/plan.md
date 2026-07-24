@@ -4175,7 +4175,7 @@ The workspace layout is unchanged (still ten directories through `deployments/`)
 - Consumes: the v0.4 deploy templates (moved, contents unchanged).
 - Produces: the `templates/deploy/<target>/` family layout; the test constants `DEPLOY_ROOT` (= `templates/deploy`) and `DEPLOY` (= `templates/deploy/ssh`) that Task 33 extends with `FLY`.
 
-- [ ] **Step 1: Repoint the DEPLOY constant (failing first)**
+- [x] **Step 1: Repoint the DEPLOY constant (failing first)**
 
 In `tests/test_dc_deploy.py`, replace this line:
 
@@ -4193,7 +4193,7 @@ DEPLOY = DEPLOY_ROOT / "ssh"
 Run: `pdm run pytest tests/test_dc_deploy.py -q`
 Expected: FAIL — the ssh/ templates do not exist yet (the files are still at `templates/deploy/`).
 
-- [ ] **Step 2: Move the templates**
+- [x] **Step 2: Move the templates**
 
 ```bash
 cd plugins/dev-commander/templates/deploy
@@ -4204,12 +4204,12 @@ cd -
 
 Template contents are unchanged — only locations move.
 
-- [ ] **Step 3: Run tests to verify they pass**
+- [x] **Step 3: Run tests to verify they pass**
 
 Run: `pdm run pytest tests/test_dc_deploy.py -v && make verify`
 Expected: all pass (every existing deploy test now reads from `ssh/` via the repointed DEPLOY); verifier clean.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 Add a Phase 29 CHANGELOG section at the top in the same commit.
 
@@ -4231,7 +4231,7 @@ git commit -m "refactor: move the SSH deploy templates into templates/deploy/ssh
 - Consumes: `DEPLOY_ROOT` and the shared `IMAGE_REF` from Task 32.
 - Produces: the `fly` target that dc-deploy (Task 34) branches to.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `tests/test_dc_deploy.py`:
 
@@ -4298,7 +4298,7 @@ def test_fly_template_has_no_unsubstituted_placeholders(name):
 Run: `pdm run pytest tests/test_dc_deploy.py -q`
 Expected: FAIL — the fly/ templates do not exist, and the family-structure test sees only `ssh`.
 
-- [ ] **Step 2: Write fly.toml.tmpl**
+- [x] **Step 2: Write fly.toml.tmpl**
 
 ```toml
 app = "{{project_name}}"
@@ -4319,7 +4319,7 @@ primary_region = "iad"
   path = "/"
 ```
 
-- [ ] **Step 3: Write fly/release.yml.tmpl**
+- [x] **Step 3: Write fly/release.yml.tmpl**
 
 ```yaml
 name: release
@@ -4363,12 +4363,12 @@ jobs:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `pdm run pytest tests/test_dc_deploy.py -v && make verify`
 Expected: all pass; verifier clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Add a Phase 30 CHANGELOG section in the same commit.
 
@@ -4388,14 +4388,14 @@ git commit -m "feat: Fly.io deploy target (Phase 30)"
 - Consumes: the `ssh/` and `fly/` target families from Tasks 32-33.
 - Produces: the multi-target `/dc:deploy` behavior.
 
-- [ ] **Step 1: Confirm the dc-deploy skill test still holds**
+- [x] **Step 1: Confirm the dc-deploy skill test still holds**
 
 The dc-deploy EXPECTED markers are `["/dc:deploy", "docker compose", "ssh"]`. The rewrite below keeps all three (the ssh branch names `docker compose` and `ssh`). Run the marker test before the rewrite to record the baseline:
 
 Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-deploy]" -v`
 Expected: PASS (against the current SKILL).
 
-- [ ] **Step 2: Rewrite dc-deploy SKILL.md**
+- [x] **Step 2: Rewrite dc-deploy SKILL.md**
 
 Replace `plugins/dev-commander/skills/dc-deploy/SKILL.md` entirely with:
 
@@ -4452,12 +4452,12 @@ against the supported set (`ssh`, `fly`); stop rather than proceed.
    for the fly target), report it and stop; never crash.
 ```
 
-- [ ] **Step 3: Run tests to verify they pass**
+- [x] **Step 3: Run tests to verify they pass**
 
 Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-deploy]" -v && make verify`
 Expected: pass (the markers `/dc:deploy`, `docker compose`, and `ssh` are all present); verifier clean.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 Add a Phase 31 CHANGELOG section in the same commit.
 
@@ -4481,7 +4481,7 @@ git commit -m "feat: dc-deploy selects a deploy target (ssh or fly) (Phase 31)"
 - Consumes: everything above; follows dc-release's process.
 - Produces: tagged v0.5.0 on origin/main; installed plugin at 0.5.0.
 
-- [ ] **Step 1: Update documentation**
+- [x] **Step 1: Update documentation**
 
 In `README.md`, change the `/dc:deploy` command-table row to:
 
@@ -4491,16 +4491,16 @@ In `README.md`, change the `/dc:deploy` command-table row to:
 
 In `docs/commands.md`, retitle the dc-deploy section to "dc-deploy — deployment" and update its row and prose to describe the target family (target selected by `target:` in `project.md`; `ssh` and `fly`; Fly deploys the GHCR image with flyctl; `FLY_API_TOKEN` referenced, never stored). In `docs/lifecycle.md`, update the Deploy phase-table row to "The published image deployed to a chosen target (self-hosted SSH or Fly.io); a record under `deployments/`." In `AGENTS.md`, change "self-hosted deployment (dc-deploy)" to "multi-target deployment (dc-deploy)" and change "Decisions (DC1-DC18)" to "Decisions (DC1-DC20)".
 
-- [ ] **Step 2: Bump the version**
+- [x] **Step 2: Bump the version**
 
 Run: `python3 plugins/dev-commander/scripts/bump_version.py . 0.5.0`
 Then set `"version": "0.5.0"` in `.claude-plugin/marketplace.json` (plugins entry) and `plugins/dev-commander/.claude-plugin/plugin.json`. Confirm all three agree.
 
-- [ ] **Step 3: CHANGELOG and README status**
+- [x] **Step 3: CHANGELOG and README status**
 
 Add a `## v0.5.0` section at the top of CHANGELOG.md summarizing Phases 29-32. Set the README status line to: Phases 0-32 complete; v0.5.0 shipped (keep the releases-page link on the version).
 
-- [ ] **Step 4: Verify, validate, commit, tag, push**
+- [x] **Step 4: Verify, validate, commit, tag, push**
 
 Run: `make verify && claude plugin validate . && claude plugin validate plugins/dev-commander`
 Expected: all clean.
@@ -4513,11 +4513,11 @@ git push origin main
 git push origin v0.5.0
 ```
 
-- [ ] **Step 5: Check off the v0.5 checkboxes and record completion**
+- [x] **Step 5: Check off the v0.5 checkboxes and record completion**
 
 Check off every `- [ ] **Step` box in the v0.5 section (Tasks 32-35) and replace the "## v0.5 Completed" body with a list of Tasks 32-35, the date 2026-07-23, and their commit SHAs. Commit as `docs: v0.5 completion record`.
 
-- [ ] **Step 6: Refresh the installed plugin**
+- [x] **Step 6: Refresh the installed plugin**
 
 Run: `claude plugin uninstall dev-commander && claude plugin install dev-commander@dev-commander-marketplace`
 Confirm the installed cache contains `templates/deploy/ssh/` and `templates/deploy/fly/` and the multi-target dc-deploy SKILL.
@@ -4528,4 +4528,9 @@ Tracked in [TODO.md](../TODO.md).
 
 ## v0.5 Completed
 
-(Empty. Move task names here with dates as they ship.)
+All shipped 2026-07-23.
+
+- Task 32: restructured the SSH deploy templates into a target family (Phase 29) — `5eba8de`
+- Task 33: Fly.io deploy target (Phase 30) — `303ef83`
+- Task 34: generalized dc-deploy to a multi-target skill (Phase 31) — `07173b5`
+- Task 35: v0.5 docs and release (Phase 32) — `502b679`
