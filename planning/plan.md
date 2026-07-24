@@ -4119,3 +4119,413 @@ All shipped 2026-07-23.
 - Task 29: dc-deploy skill (Phase 26) — `1278e37`
 - Task 30: next_step ship state (Phase 27) — `9baa105`
 - Task 31: v0.4 docs and release (Phase 28) — `4485759`
+
+---
+
+# v0.5 Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Turn dc-deploy from a single-target skill into a target family and add Fly.io as the second target, keeping the container image the single deployment artifact across targets.
+
+**Architecture:** dc-deploy stays one Markdown-only skill that now branches by target. The existing SSH deploy templates move into `templates/deploy/ssh/`; a new `templates/deploy/fly/` holds the Fly.io config and release workflow. The active target is selected by a `target:` key in `project.md`'s Deployment section. No new workspace directory, no next_step change, no new skill.
+
+**Tech Stack:** Unchanged — Claude Code plugin format, Python 3.12, pdm, pytest, ruff, Make, pyyaml (present), tomllib (stdlib). Fly target uses flyctl and a GHCR image.
+
+## v0.5 Global Constraints
+
+All prior Global Constraints still apply verbatim. Additions:
+
+- Deploy targets live under `templates/deploy/<target>/`; the active target is a `target:` key in `project.md`'s Deployment section (asked and recorded if absent), values `ssh` or `fly` (DC19).
+- The Fly.io target deploys the GHCR image dc-publish built (`flyctl deploy --image ...`), not a Fly-side build; `FLY_API_TOKEN` is referenced, never stored (DC20, extends DC18).
+- Every target's config and release workflow reference the shared image string `ghcr.io/{{repo_owner}}/{{project_name}}`.
+- Only `{{project_name}}` and `{{repo_owner}}` are substituted; GitHub Actions `${{ ... }}` expressions must survive substitution.
+
+## v0.5 Decisions
+
+| # | Decision |
+| --- | --- |
+| DC19 | dc-deploy is a target family. Targets live under `templates/deploy/<target>/`, and the active target is selected by a `target:` key in `project.md`'s Deployment section (asked and recorded if absent, like the host). v0.5 ships `ssh` (moved) and `fly`. |
+| DC20 | The Fly.io target deploys the GHCR image dc-publish built (`flyctl deploy --image ...`), not a Fly-side build, keeping the container image the single artifact across targets. `FLY_API_TOKEN` is referenced from the environment or a GitHub Actions secret, never stored (DC18 holds). |
+
+## v0.5 File Structure (changes)
+
+```
+plugins/dev-commander/templates/deploy/
+├── ssh/                              # MOVED (Task 32)
+│   ├── docker-compose.prod.yml.tmpl
+│   └── release.yml.tmpl
+└── fly/                              # NEW (Task 33)
+    ├── fly.toml.tmpl
+    └── release.yml.tmpl
+```
+
+The workspace layout is unchanged (still ten directories through `deployments/`).
+
+---
+
+### Task 32: Restructure the SSH deploy templates into a target family (Phase 29)
+
+**Files:**
+- Move: `plugins/dev-commander/templates/deploy/docker-compose.prod.yml.tmpl` to `plugins/dev-commander/templates/deploy/ssh/docker-compose.prod.yml.tmpl`
+- Move: `plugins/dev-commander/templates/deploy/release.yml.tmpl` to `plugins/dev-commander/templates/deploy/ssh/release.yml.tmpl`
+- Modify: `tests/test_dc_deploy.py` (repoint the DEPLOY constant)
+
+**Interfaces:**
+- Consumes: the v0.4 deploy templates (moved, contents unchanged).
+- Produces: the `templates/deploy/<target>/` family layout; the test constants `DEPLOY_ROOT` (= `templates/deploy`) and `DEPLOY` (= `templates/deploy/ssh`) that Task 33 extends with `FLY`.
+
+- [ ] **Step 1: Repoint the DEPLOY constant (failing first)**
+
+In `tests/test_dc_deploy.py`, replace this line:
+
+```python
+DEPLOY = PLUGIN / "templates" / "deploy"
+```
+
+with:
+
+```python
+DEPLOY_ROOT = PLUGIN / "templates" / "deploy"
+DEPLOY = DEPLOY_ROOT / "ssh"
+```
+
+Run: `pdm run pytest tests/test_dc_deploy.py -q`
+Expected: FAIL — the ssh/ templates do not exist yet (the files are still at `templates/deploy/`).
+
+- [ ] **Step 2: Move the templates**
+
+```bash
+cd plugins/dev-commander/templates/deploy
+mkdir ssh
+git mv docker-compose.prod.yml.tmpl release.yml.tmpl ssh/
+cd -
+```
+
+Template contents are unchanged — only locations move.
+
+- [ ] **Step 3: Run tests to verify they pass**
+
+Run: `pdm run pytest tests/test_dc_deploy.py -v && make verify`
+Expected: all pass (every existing deploy test now reads from `ssh/` via the repointed DEPLOY); verifier clean.
+
+- [ ] **Step 4: Commit**
+
+Add a Phase 29 CHANGELOG section at the top in the same commit.
+
+```bash
+git add -A
+git commit -m "refactor: move the SSH deploy templates into templates/deploy/ssh/ (Phase 29)"
+```
+
+---
+
+### Task 33: Fly.io deploy target (Phase 30)
+
+**Files:**
+- Create: `plugins/dev-commander/templates/deploy/fly/fly.toml.tmpl`
+- Create: `plugins/dev-commander/templates/deploy/fly/release.yml.tmpl`
+- Modify: `tests/test_dc_deploy.py` (add Fly tests and the family-structure test)
+
+**Interfaces:**
+- Consumes: `DEPLOY_ROOT` and the shared `IMAGE_REF` from Task 32.
+- Produces: the `fly` target that dc-deploy (Task 34) branches to.
+
+- [ ] **Step 1: Write the failing tests**
+
+Append to `tests/test_dc_deploy.py`:
+
+```python
+import tomllib
+
+FLY = DEPLOY_ROOT / "fly"
+
+
+def test_deploy_family_has_only_target_dirs():
+    entries = {p.name for p in DEPLOY_ROOT.iterdir() if p.is_dir()}
+    assert entries == {"ssh", "fly"}
+
+
+def test_fly_templates_exist():
+    assert (FLY / "fly.toml.tmpl").is_file()
+    assert (FLY / "release.yml.tmpl").is_file()
+
+
+def test_fly_toml_is_valid_toml_and_names_the_app():
+    doc = tomllib.loads(_render(FLY / "fly.toml.tmpl"))
+    assert doc["app"] == "demo-app"
+
+
+def test_fly_toml_raw_is_valid_toml():
+    doc = tomllib.loads((FLY / "fly.toml.tmpl").read_text())
+    assert "app" in doc
+
+
+def test_fly_toml_references_the_image():
+    assert IMAGE_REF in (FLY / "fly.toml.tmpl").read_text()
+
+
+def test_fly_release_is_valid_yaml_and_triggers_on_tag():
+    doc = yaml.safe_load(_render(FLY / "release.yml.tmpl"))
+    triggers = doc.get("on", doc.get(True))
+    assert "push" in triggers
+    assert "tags" in triggers["push"]
+
+
+def test_fly_release_raw_is_valid_yaml():
+    doc = yaml.safe_load((FLY / "release.yml.tmpl").read_text())
+    assert "jobs" in doc
+
+
+def test_fly_release_references_image_and_flyctl():
+    text = (FLY / "release.yml.tmpl").read_text()
+    assert IMAGE_REF in text
+    assert "flyctl deploy" in text
+
+
+def test_fly_release_preserves_github_expressions():
+    text = _render(FLY / "release.yml.tmpl")
+    assert "${{ secrets.FLY_API_TOKEN }}" in text
+
+
+@pytest.mark.parametrize("name", ["fly.toml.tmpl", "release.yml.tmpl"])
+def test_fly_template_has_no_unsubstituted_placeholders(name):
+    text = _render(FLY / name)
+    assert "{{project_name}}" not in text
+    assert "{{repo_owner}}" not in text
+```
+
+Run: `pdm run pytest tests/test_dc_deploy.py -q`
+Expected: FAIL — the fly/ templates do not exist, and the family-structure test sees only `ssh`.
+
+- [ ] **Step 2: Write fly.toml.tmpl**
+
+```toml
+app = "{{project_name}}"
+primary_region = "iad"
+
+[build]
+  image = "ghcr.io/{{repo_owner}}/{{project_name}}:latest"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+
+[[http_service.checks]]
+  interval = "30s"
+  timeout = "5s"
+  path = "/"
+```
+
+- [ ] **Step 3: Write fly/release.yml.tmpl**
+
+```yaml
+name: release
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: derive image version
+        id: ver
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - name: set up buildx
+        uses: docker/setup-buildx-action@v3
+      - name: log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/{{repo_owner}}/{{project_name}}:latest
+            ghcr.io/{{repo_owner}}/{{project_name}}:${{ steps.ver.outputs.version }}
+      - name: set up flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: deploy to fly
+        run: flyctl deploy --app {{project_name}} --image ghcr.io/{{repo_owner}}/{{project_name}}:${{ steps.ver.outputs.version }}
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+```
+
+- [ ] **Step 4: Run tests to verify they pass**
+
+Run: `pdm run pytest tests/test_dc_deploy.py -v && make verify`
+Expected: all pass; verifier clean.
+
+- [ ] **Step 5: Commit**
+
+Add a Phase 30 CHANGELOG section in the same commit.
+
+```bash
+git add -A
+git commit -m "feat: Fly.io deploy target (Phase 30)"
+```
+
+---
+
+### Task 34: Generalize dc-deploy to a multi-target skill (Phase 31)
+
+**Files:**
+- Modify: `plugins/dev-commander/skills/dc-deploy/SKILL.md` (full rewrite below)
+
+**Interfaces:**
+- Consumes: the `ssh/` and `fly/` target families from Tasks 32-33.
+- Produces: the multi-target `/dc:deploy` behavior.
+
+- [ ] **Step 1: Confirm the dc-deploy skill test still holds**
+
+The dc-deploy EXPECTED markers are `["/dc:deploy", "docker compose", "ssh"]`. The rewrite below keeps all three (the ssh branch names `docker compose` and `ssh`). Run the marker test before the rewrite to record the baseline:
+
+Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-deploy]" -v`
+Expected: PASS (against the current SKILL).
+
+- [ ] **Step 2: Rewrite dc-deploy SKILL.md**
+
+Replace `plugins/dev-commander/skills/dc-deploy/SKILL.md` entirely with:
+
+```markdown
+---
+name: dc-deploy
+description: Deployment for Dev Commander. Use when the user runs /dc:deploy or asks to ship the published image. Deploys the image dc-publish pushed to a chosen target (a self-hosted host over SSH, or Fly.io), selected by a target key in project.md. It never embeds secrets and never guesses the target.
+---
+
+# dc-deploy
+
+Deploys the published container image to a chosen target. It ships the image
+dc-publish pushed; it does not build one. Targets live under
+`templates/deploy/<target>/`; v0.5 supports `ssh` (a self-hosted Linux host
+running docker compose) and `fly` (Fly.io).
+
+## Selecting the target
+
+Read `target:` from the Deployment section of the workspace `project.md`
+(`ssh` or `fly`). If it is not set there, ask the user which target and offer
+to record it in `project.md`. Never guess. An unsupported value is reported
+against the supported set (`ssh`, `fly`); stop rather than proceed.
+
+## /dc:deploy
+
+1. Select the target (above).
+2. Generate the target's config if absent, from `templates/deploy/<target>/`
+   relative to this plugin's root (resolved as dc-core describes),
+   substituting `{{project_name}}` and `{{repo_owner}}` (the GitHub owner
+   from the git remote). Never overwrite an existing file.
+   - ssh: `docker-compose.prod.yml` from
+     `templates/deploy/ssh/docker-compose.prod.yml.tmpl`.
+   - fly: `fly.toml` from `templates/deploy/fly/fly.toml.tmpl`.
+3. Deploy via the target's mechanism:
+   - ssh: read the host and SSH user from the Deployment section (ask and
+     record if absent); over SSH, ensure the compose file is on the host,
+     then run `docker compose -f docker-compose.prod.yml pull` and
+     `docker compose -f docker-compose.prod.yml up -d`.
+   - fly: `flyctl deploy --app <project> --image
+     ghcr.io/<owner>/<project>:<version>`.
+4. Credentials come from the environment locally, or GitHub Actions secrets
+   in CI — ssh: `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`; fly:
+   `FLY_API_TOKEN`. Reference them; never embed or store a secret.
+5. Write a deploy record to `.dev-commander/deployments/NNNN-<slug>.md`,
+   where NNNN is the next zero-padded sequence number: the target, the image
+   deployed, and the outcome.
+6. To automate the ship on a version tag, generate
+   `.github/workflows/release.yml` from
+   `templates/deploy/<target>/release.yml.tmpl` (never overwriting). It
+   builds and pushes the image (dc-publish's step) and deploys to the target
+   on a `v*` tag. Run /dc:publish first (or ensure a Dockerfile exists) so
+   the tag-triggered build has a Dockerfile.
+7. If a required tool is missing (docker or ssh for the ssh target, flyctl
+   for the fly target), report it and stop; never crash.
+```
+
+- [ ] **Step 3: Run tests to verify they pass**
+
+Run: `pdm run pytest "tests/test_dc_skills.py::test_skill_has_frontmatter_and_required_content[dc-deploy]" -v && make verify`
+Expected: pass (the markers `/dc:deploy`, `docker compose`, and `ssh` are all present); verifier clean.
+
+- [ ] **Step 4: Commit**
+
+Add a Phase 31 CHANGELOG section in the same commit.
+
+```bash
+git add -A
+git commit -m "feat: dc-deploy selects a deploy target (ssh or fly) (Phase 31)"
+```
+
+---
+
+### Task 35: v0.5 docs and release (Phase 32)
+
+**Files:**
+- Modify: `README.md` (dc-deploy command row, status line)
+- Modify: `docs/commands.md`, `docs/lifecycle.md`
+- Modify: `AGENTS.md` (identity prose, decisions range)
+- Modify: `pyproject.toml`, `.claude-plugin/marketplace.json`, `plugins/dev-commander/.claude-plugin/plugin.json` (version 0.5.0)
+- Modify: `CHANGELOG.md`
+
+**Interfaces:**
+- Consumes: everything above; follows dc-release's process.
+- Produces: tagged v0.5.0 on origin/main; installed plugin at 0.5.0.
+
+- [ ] **Step 1: Update documentation**
+
+In `README.md`, change the `/dc:deploy` command-table row to:
+
+```
+| /dc:deploy | dc-deploy | Deploy the published image to a target (self-hosted SSH or Fly.io) |
+```
+
+In `docs/commands.md`, retitle the dc-deploy section to "dc-deploy — deployment" and update its row and prose to describe the target family (target selected by `target:` in `project.md`; `ssh` and `fly`; Fly deploys the GHCR image with flyctl; `FLY_API_TOKEN` referenced, never stored). In `docs/lifecycle.md`, update the Deploy phase-table row to "The published image deployed to a chosen target (self-hosted SSH or Fly.io); a record under `deployments/`." In `AGENTS.md`, change "self-hosted deployment (dc-deploy)" to "multi-target deployment (dc-deploy)" and change "Decisions (DC1-DC18)" to "Decisions (DC1-DC20)".
+
+- [ ] **Step 2: Bump the version**
+
+Run: `python3 plugins/dev-commander/scripts/bump_version.py . 0.5.0`
+Then set `"version": "0.5.0"` in `.claude-plugin/marketplace.json` (plugins entry) and `plugins/dev-commander/.claude-plugin/plugin.json`. Confirm all three agree.
+
+- [ ] **Step 3: CHANGELOG and README status**
+
+Add a `## v0.5.0` section at the top of CHANGELOG.md summarizing Phases 29-32. Set the README status line to: Phases 0-32 complete; v0.5.0 shipped (keep the releases-page link on the version).
+
+- [ ] **Step 4: Verify, validate, commit, tag, push**
+
+Run: `make verify && claude plugin validate . && claude plugin validate plugins/dev-commander`
+Expected: all clean.
+
+```bash
+git add -A
+git commit -m "chore: release v0.5.0"
+git tag -a v0.5.0 -m "release v0.5.0"
+git push origin main
+git push origin v0.5.0
+```
+
+- [ ] **Step 5: Check off the v0.5 checkboxes and record completion**
+
+Check off every `- [ ] **Step` box in the v0.5 section (Tasks 32-35) and replace the "## v0.5 Completed" body with a list of Tasks 32-35, the date 2026-07-23, and their commit SHAs. Commit as `docs: v0.5 completion record`.
+
+- [ ] **Step 6: Refresh the installed plugin**
+
+Run: `claude plugin uninstall dev-commander && claude plugin install dev-commander@dev-commander-marketplace`
+Confirm the installed cache contains `templates/deploy/ssh/` and `templates/deploy/fly/` and the multi-target dc-deploy SKILL.
+
+## v0.5 To Do
+
+Tracked in [TODO.md](../TODO.md).
+
+## v0.5 Completed
+
+(Empty. Move task names here with dates as they ship.)

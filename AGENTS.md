@@ -12,7 +12,7 @@ Dev Commander is an AI-assisted software development agent, shipped as a Claude 
 
 | Document | What it owns |
 | --- | --- |
-| [planning/plan.md](planning/plan.md) | **The authoritative spec and implementation plan.** Contains the Decisions (DC1-DC18), Global Constraints, File Structure, workspace layout, and the task-by-task implementation plan with checkbox tracking (v0.1 Tasks 1-10, v0.2 Tasks 11-18, v0.3 Tasks 19-24, and v0.4 Tasks 25-31 complete). **If the plan and the code disagree, fix the plan first, then the code.** |
+| [planning/plan.md](planning/plan.md) | **The authoritative spec and implementation plan.** Contains the Decisions (DC1-DC20), Global Constraints, File Structure, workspace layout, and the task-by-task implementation plan with checkbox tracking (v0.1 Tasks 1-10, v0.2 Tasks 11-18, v0.3 Tasks 19-24, and v0.4 Tasks 25-31 complete; v0.5 Tasks 32-35 planned). **If the plan and the code disagree, fix the plan first, then the code.** |
 | [CHANGELOG.md](CHANGELOG.md) | Phase-by-phase shipping log. Newest changes at the top within each phase section. |
 | [TODO.md](TODO.md) | Features not yet added or under construction. |
 | [README.md](README.md) | User-facing overview. Status line names the most recent completed phase. |
