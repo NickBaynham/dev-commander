@@ -6,7 +6,8 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 PLUGIN = ROOT / "plugins" / "dev-commander"
 DOCKER = PLUGIN / "templates" / "docker"
-DEPLOY = PLUGIN / "templates" / "deploy"
+DEPLOY_ROOT = PLUGIN / "templates" / "deploy"
+DEPLOY = DEPLOY_ROOT / "ssh"
 IMAGE_REF = "ghcr.io/{{repo_owner}}/{{project_name}}"
 
 STACKS = ["python", "node-ts", "go"]

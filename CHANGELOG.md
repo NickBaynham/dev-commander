@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.5 (in progress)
+
+Restructuring deploy into a target family to support multiple deployment
+platforms. The first task moves the existing SSH deploy templates into
+`templates/deploy/ssh/` to create the family structure.
+
+- Phase 29: restructured the deploy templates into a target family layout
+  (`templates/deploy/<target>/`). The two existing templates (docker-compose.prod.yml
+  and release.yml) moved into `templates/deploy/ssh/` to establish the SSH
+  target. Test constants (DEPLOY_ROOT and DEPLOY) repointed to enable Task 33
+  to add the Fly target.
+
 ## v0.4.1
 
 Patch release from the v0.4.0 whole-branch review: the generated release
