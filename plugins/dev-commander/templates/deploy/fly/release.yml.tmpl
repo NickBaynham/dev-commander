@@ -1,0 +1,39 @@
+name: release
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: derive image version
+        id: ver
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - name: set up buildx
+        uses: docker/setup-buildx-action@v3
+      - name: log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/{{repo_owner}}/{{project_name}}:latest
+            ghcr.io/{{repo_owner}}/{{project_name}}:${{ steps.ver.outputs.version }}
+      - name: set up flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: deploy to fly
+        run: flyctl deploy --app {{project_name}} --image ghcr.io/{{repo_owner}}/{{project_name}}:${{ steps.ver.outputs.version }}
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

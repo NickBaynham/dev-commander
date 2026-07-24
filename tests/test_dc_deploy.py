@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+import tomllib
 import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -8,6 +9,7 @@ PLUGIN = ROOT / "plugins" / "dev-commander"
 DOCKER = PLUGIN / "templates" / "docker"
 DEPLOY_ROOT = PLUGIN / "templates" / "deploy"
 DEPLOY = DEPLOY_ROOT / "ssh"
+FLY = DEPLOY_ROOT / "fly"
 IMAGE_REF = "ghcr.io/{{repo_owner}}/{{project_name}}"
 
 STACKS = ["python", "node-ts", "go"]
@@ -98,5 +100,59 @@ def test_deploy_template_has_no_unsubstituted_placeholders(name):
     text = _render(DEPLOY / name)
     # Our mustache placeholders are {{project_name}} and {{repo_owner}};
     # GitHub Actions ${{ ... }} expressions are legitimate and must survive.
+    assert "{{project_name}}" not in text
+    assert "{{repo_owner}}" not in text
+
+
+def test_deploy_family_has_only_target_dirs():
+    entries = {p.name for p in DEPLOY_ROOT.iterdir() if p.is_dir()}
+    assert entries == {"ssh", "fly"}
+
+
+def test_fly_templates_exist():
+    assert (FLY / "fly.toml.tmpl").is_file()
+    assert (FLY / "release.yml.tmpl").is_file()
+
+
+def test_fly_toml_is_valid_toml_and_names_the_app():
+    doc = tomllib.loads(_render(FLY / "fly.toml.tmpl"))
+    assert doc["app"] == "demo-app"
+
+
+def test_fly_toml_raw_is_valid_toml():
+    doc = tomllib.loads((FLY / "fly.toml.tmpl").read_text())
+    assert "app" in doc
+
+
+def test_fly_toml_references_the_image():
+    assert IMAGE_REF in (FLY / "fly.toml.tmpl").read_text()
+
+
+def test_fly_release_is_valid_yaml_and_triggers_on_tag():
+    doc = yaml.safe_load(_render(FLY / "release.yml.tmpl"))
+    triggers = doc.get("on", doc.get(True))
+    assert "push" in triggers
+    assert "tags" in triggers["push"]
+
+
+def test_fly_release_raw_is_valid_yaml():
+    doc = yaml.safe_load((FLY / "release.yml.tmpl").read_text())
+    assert "jobs" in doc
+
+
+def test_fly_release_references_image_and_flyctl():
+    text = (FLY / "release.yml.tmpl").read_text()
+    assert IMAGE_REF in text
+    assert "flyctl deploy" in text
+
+
+def test_fly_release_preserves_github_expressions():
+    text = _render(FLY / "release.yml.tmpl")
+    assert "${{ secrets.FLY_API_TOKEN }}" in text
+
+
+@pytest.mark.parametrize("name", ["fly.toml.tmpl", "release.yml.tmpl"])
+def test_fly_template_has_no_unsubstituted_placeholders(name):
+    text = _render(FLY / name)
     assert "{{project_name}}" not in text
     assert "{{repo_owner}}" not in text

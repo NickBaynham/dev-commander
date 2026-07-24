@@ -6,6 +6,15 @@ Restructuring deploy into a target family to support multiple deployment
 platforms. The first task moves the existing SSH deploy templates into
 `templates/deploy/ssh/` to create the family structure.
 
+- Phase 30: added the Fly.io deploy target. Created `templates/deploy/fly/fly.toml.tmpl`,
+  a Fly.io app configuration file that references the same image as SSH
+  (ghcr.io/{{repo_owner}}/{{project_name}}:latest). Created `templates/deploy/fly/release.yml.tmpl`,
+  a GitHub Actions workflow that builds, pushes the image, and deploys to Fly.io
+  using flyctl on version tags. Both Fly templates follow the family pattern and
+  preserve GitHub Actions expressions (${{ ... }}) while substituting project
+  placeholders. Extended tests/test_dc_deploy.py with tomllib import, FLY constant,
+  and 10 new tests validating the Fly family member: structure test, file existence,
+  TOML/YAML validity, image and flyctl references, and GitHub expression preservation.
 - Phase 29: restructured the deploy templates into a target family layout
   (`templates/deploy/<target>/`). The two existing templates (docker-compose.prod.yml
   and release.yml) moved into `templates/deploy/ssh/` to establish the SSH
