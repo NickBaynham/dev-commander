@@ -1,11 +1,19 @@
 # Changelog
 
-## v0.5 (in progress)
+## v0.5.0
 
-Restructuring deploy into a target family to support multiple deployment
-platforms. The first task moves the existing SSH deploy templates into
-`templates/deploy/ssh/` to create the family structure.
+Restructured deploy into a target family to support multiple deployment
+platforms: dc-deploy now selects between a self-hosted SSH host and Fly.io,
+reading the target from project.md.
 
+- Phase 32: v0.5 docs and release. Updated README, docs/commands.md, and
+  docs/lifecycle.md to describe the target family (target selected via
+  `target:` in project.md; `ssh` and `fly`; Fly deploys the GHCR image with
+  flyctl, referencing `FLY_API_TOKEN` without storing it) instead of the old
+  SSH-only wording. Updated AGENTS.md's identity prose from "self-hosted
+  deployment" to "multi-target deployment". Bumped the version to 0.5.0
+  across pyproject.toml, marketplace.json, and plugin.json, and tagged the
+  release.
 - Phase 31: generalized dc-deploy into a multi-target skill. The SKILL.md now
   reads a `target:` key from the Deployment section of project.md (ssh or fly),
   branching the config generation and deploy mechanism by target. It generates

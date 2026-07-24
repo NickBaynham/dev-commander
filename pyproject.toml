@@ -1,6 +1,6 @@
 [project]
 name = "dev-commander"
-version = "0.4.1"
+version = "0.5.0"
 description = "An AI-assisted software development agent shipped as a Claude Code plugin."
 authors = [
     {name = "Nick Baynham", email = "nickbaynham@gmail.com"},

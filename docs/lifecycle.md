@@ -35,7 +35,7 @@ are optional per feature; the core spine is plan → implement → review.
 | Pull request | `/dc:pr` | A drafted PR (pushed only on your approval). |
 | Release | `/dc:release` | A version bump, changelog section, and tag. |
 | Publish | `/dc:publish` | A container image built and pushed to GHCR; a record under `deployments/`. |
-| Deploy | `/dc:deploy` | The published image deployed to a self-hosted host over SSH; a record under `deployments/`. |
+| Deploy | `/dc:deploy` | The published image deployed to a chosen target (self-hosted SSH or Fly.io); a record under `deployments/`. |
 | Handoff | `/dc:handoff-to-tc` | A bundle under `handoff/` for Test Commander. |
 | Learn | `/dc:learn`, `/dc:promote-lesson` | A candidate lesson under `learning/`. |
 

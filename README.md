@@ -5,7 +5,7 @@ Dev Commander guides a project through scaffold, plan, implement, review,
 debug, and handoff to [Test Commander](https://github.com/NickBaynham/test-commander)
 via a `/dc:*` command family.
 
-Status: Phases 0-28 complete; [v0.4.1](https://github.com/NickBaynham/dev-commander/releases/latest) shipped.
+Status: Phases 0-32 complete; [v0.5.0](https://github.com/NickBaynham/dev-commander/releases/latest) shipped.
 
 ## Install
 
@@ -74,7 +74,7 @@ threads them together — you never have to remember the order.
 | /dc:scan | dc-secscan | Run dependency and secret scans, report findings |
 | /dc:ci | dc-ci | Generate a GitHub Actions PR gate |
 | /dc:publish | dc-publish | Build and push a container image to GHCR |
-| /dc:deploy | dc-deploy | Deploy the published image to a host over SSH |
+| /dc:deploy | dc-deploy | Deploy the published image to a target (self-hosted SSH or Fly.io) |
 
 ## Development
 

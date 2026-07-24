@@ -113,19 +113,25 @@ credential. It writes a publish record to `.dev-commander/deployments/` and
 is the single source of truth for the image reference that the release
 workflow embeds.
 
-## dc-deploy — self-hosted deployment
+## dc-deploy — deployment
 
 | Command | Purpose |
 | --- | --- |
-| `/dc:deploy` | Deploy the image dc-publish pushed to a self-hosted Linux host over SSH with docker compose, generating `docker-compose.prod.yml` from a template if none exists. |
+| `/dc:deploy` | Deploy the image dc-publish pushed to a chosen target — a self-hosted Linux host over SSH with docker compose, or Fly.io — generating the target's config from a template if none exists. |
 
-Reads the deployment host and SSH user from a Deployment section in the
-workspace `project.md`, asking (and offering to record) rather than
-guessing if it is missing. SSH credentials and registry auth come from the
-environment locally, or `DEPLOY_HOST`, `DEPLOY_USER`, and `DEPLOY_SSH_KEY`
-GitHub Actions secrets in CI; never embedded or stored. It also generates
-`.github/workflows/release.yml` to automate the ship (build, push, deploy)
-on a `v*` tag, and writes a deploy record to `.dev-commander/deployments/`.
+Reads the target (`ssh` or `fly`) from a `target:` key in the Deployment
+section of the workspace `project.md`, asking (and offering to record)
+rather than guessing if it is missing; an unsupported value is reported and
+deploy stops. For `ssh`, it reads the deployment host and SSH user from the
+same section and generates `docker-compose.prod.yml`, deploying with
+`docker compose pull` and `up -d` over SSH; credentials come from the
+environment locally, or the `DEPLOY_HOST`, `DEPLOY_USER`, and
+`DEPLOY_SSH_KEY` GitHub Actions secrets in CI. For `fly`, it generates
+`fly.toml` and deploys the GHCR image with `flyctl`, referencing the
+`FLY_API_TOKEN` GitHub Actions secret in CI; never embedded or stored either
+way. It also generates `.github/workflows/release.yml` from the target's
+template to automate the ship (build, push, deploy) on a `v*` tag, and
+writes a deploy record to `.dev-commander/deployments/`.
 
 ## dc-learning — governed lesson capture
 
