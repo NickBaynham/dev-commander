@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.5.1
+
+Patch release from the v0.5.0 whole-branch review: documenting the Fly.io
+target's registry and image-tag behavior.
+
+- docs: the Fly target now documents that the GHCR package must be public
+  for Fly to pull the image (`flyctl deploy --image` carries no registry
+  credentials) — stated in both the generated `release.yml` and dc-deploy's
+  SKILL, at the point of use.
+- docs: fly.toml notes that the release workflow deploys the exact tagged
+  version via `--image ...:<version>` while a bare `flyctl deploy` uses
+  `:latest`; the SKILL tells a manual deploy to pass the version explicitly.
+- docs: TODO.md refreshed to reflect v0.5 shipped.
+
 ## v0.5.0
 
 Restructured deploy into a target family to support multiple deployment
