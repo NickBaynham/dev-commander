@@ -4305,6 +4305,7 @@ app = "{{project_name}}"
 primary_region = "iad"
 
 [build]
+  # The release workflow deploys the exact tagged version with flyctl deploy --image ...:<version>; a bare flyctl deploy uses the :latest tag below.
   image = "ghcr.io/{{repo_owner}}/{{project_name}}:latest"
 
 [http_service]
@@ -4355,6 +4356,7 @@ jobs:
           tags: |
             ghcr.io/{{repo_owner}}/{{project_name}}:latest
             ghcr.io/{{repo_owner}}/{{project_name}}:${{ steps.ver.outputs.version }}
+      # Fly pulls this image from GHCR: make the GHCR package public (repo Settings > Packages), since flyctl deploy --image carries no registry credentials.
       - name: set up flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
       - name: deploy to fly
@@ -4428,14 +4430,19 @@ against the supported set (`ssh`, `fly`); stop rather than proceed.
    from the git remote). Never overwrite an existing file.
    - ssh: `docker-compose.prod.yml` from
      `templates/deploy/ssh/docker-compose.prod.yml.tmpl`.
-   - fly: `fly.toml` from `templates/deploy/fly/fly.toml.tmpl`.
+   - fly: `fly.toml` from `templates/deploy/fly/fly.toml.tmpl`. The GHCR
+     package must be public for Fly to pull the image; flyctl deploy --image
+     carries no registry credentials.
 3. Deploy via the target's mechanism:
    - ssh: read the host and SSH user from the Deployment section (ask and
      record if absent); over SSH, ensure the compose file is on the host,
      then run `docker compose -f docker-compose.prod.yml pull` and
      `docker compose -f docker-compose.prod.yml up -d`.
    - fly: `flyctl deploy --app <project> --image
-     ghcr.io/<owner>/<project>:<version>`.
+     ghcr.io/<owner>/<project>:<version>`. For a manual deploy, pass the
+     released version explicitly (flyctl deploy --image
+     ghcr.io/<owner>/<project>:<version>); a bare flyctl deploy uses the
+     :latest tag from fly.toml.
 4. Credentials come from the environment locally, or GitHub Actions secrets
    in CI — ssh: `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`; fly:
    `FLY_API_TOKEN`. Reference them; never embed or store a secret.

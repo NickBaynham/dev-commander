@@ -1,11 +1,6 @@
 # To Do
 
-## v0.5 (planned — see planning/plan.md, Tasks 32-35)
-
-- Phase 29: restructure the SSH deploy templates into templates/deploy/ssh/.
-- Phase 30: Fly.io deploy target (fly.toml + release workflow).
-- Phase 31: generalize dc-deploy to select a target (ssh or fly) from project.md.
-- Phase 32: v0.5 release.
+(No open items. New work starts with a brainstorm and a plan.)
 
 ## Later
 

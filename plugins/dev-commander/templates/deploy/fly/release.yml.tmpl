@@ -31,6 +31,7 @@ jobs:
           tags: |
             ghcr.io/{{repo_owner}}/{{project_name}}:latest
             ghcr.io/{{repo_owner}}/{{project_name}}:${{ steps.ver.outputs.version }}
+      # Fly pulls this image from GHCR: make the GHCR package public (repo Settings > Packages), since flyctl deploy --image carries no registry credentials.
       - name: set up flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
       - name: deploy to fly

@@ -2,6 +2,7 @@ app = "{{project_name}}"
 primary_region = "iad"
 
 [build]
+  # The release workflow deploys the exact tagged version with flyctl deploy --image ...:<version>; a bare flyctl deploy uses the :latest tag below.
   image = "ghcr.io/{{repo_owner}}/{{project_name}}:latest"
 
 [http_service]
